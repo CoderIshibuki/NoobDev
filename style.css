@@ -1,0 +1,627 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+.hero {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0a2647 0%, #1a4d7a 50%, #4a8dbf 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Navigation */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 60px;
+    position: relative;
+    z-index: 100;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: bold;
+    color: white;
+}
+
+.nav-links {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    transition: opacity 0.3s;
+}
+
+.nav-links a:hover {
+    opacity: 0.8;
+}
+
+.login-btn {
+    background: white;
+    color: #0a2647 !important;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+    opacity: 1 !important;
+}
+
+/* Language Dropdown */
+.language-dropdown {
+    position: relative;
+}
+
+.language-btn {
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+.language-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.language-dropdown.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.language-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    min-width: 160px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 200;
+    overflow: hidden;
+}
+
+.language-menu::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    transform: rotate(45deg);
+}
+
+.language-dropdown.active .language-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.language-option {
+    display: block;
+    padding: 12px 20px;
+    color: #0a2647 !important;
+    text-decoration: none;
+    font-size: 15px;
+    transition: background 0.2s;
+    position: relative;
+}
+
+.language-option:hover {
+    background: rgba(10, 38, 71, 0.08);
+}
+
+.language-option.active {
+    background: rgba(10, 38, 71, 0.12);
+    font-weight: 600;
+}
+
+.language-option.active::after {
+    content: '✓';
+    position: absolute;
+    right: 15px;
+    color: #0a2647;
+    font-weight: bold;
+}
+
+/* Side Menu */
+.menu-toggle {
+    position: relative;
+    z-index: 150;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.menu-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.menu-toggle span {
+    width: 20px;
+    height: 2px;
+    background: white;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+.menu-toggle.active {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.side-menu {
+    position: fixed;
+    left: -300px;
+    top: 0;
+    height: 100vh;
+    z-index: 120;
+    background: rgba(10, 38, 71, 0.98);
+    backdrop-filter: blur(20px);
+    padding: 100px 40px 40px 40px;
+    width: 250px;
+    box-shadow: 5px 0 30px rgba(0, 0, 0, 0.5);
+    transition: left 0.4s ease;
+}
+
+.side-menu.active {
+    left: 0;
+}
+
+.side-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.side-menu li {
+    margin: 30px 0;
+    position: relative;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.3s ease;
+}
+
+.side-menu.active li {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.side-menu.active li:nth-child(1) {
+    transition-delay: 0.1s;
+}
+
+.side-menu.active li:nth-child(2) {
+    transition-delay: 0.2s;
+}
+
+.side-menu.active li:nth-child(3) {
+    transition-delay: 0.3s;
+}
+
+.side-menu.active li:nth-child(4) {
+    transition-delay: 0.4s;
+}
+
+.side-menu a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    position: relative;
+    display: inline-block;
+    padding: 5px 0;
+}
+
+.side-menu a::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 2px;
+    background: white;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.side-menu a:hover {
+    transform: translateX(10px);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.side-menu a:hover::before {
+    opacity: 1;
+    left: -25px;
+}
+
+/* Stars */
+.stars {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 3s infinite;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+/* Moon */
+.moon {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #f0f8ff, #d4e8f5);
+    box-shadow: 0 0 80px rgba(255, 255, 255, 0.5);
+    top: 180px;
+    left: 15%;
+    animation: float 6s ease-in-out infinite;
+}
+
+.moon-crater {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(180, 200, 220, 0.3);
+}
+
+.crater1 {
+    width: 40px;
+    height: 40px;
+    top: 60px;
+    left: 80px;
+}
+
+.crater2 {
+    width: 30px;
+    height: 30px;
+    top: 120px;
+    left: 140px;
+}
+
+.crater3 {
+    width: 25px;
+    height: 25px;
+    top: 180px;
+    left: 100px;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+/* Content */
+.content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding-top: 100px;
+    color: white;
+}
+
+h1 {
+    font-size: 64px;
+    font-weight: 400;
+    margin-bottom: 40px;
+    animation: fadeInDown 1s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cta-button {
+    background: white;
+    color: #0a2647;
+    padding: 18px 60px;
+    font-size: 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.3s, box-shadow 0.3s;
+    animation: fadeInUp 1s ease-out 0.3s both;
+}
+
+.cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Clouds */
+.clouds {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 250px;
+}
+
+.cloud {
+    position: absolute;
+    bottom: 0;
+    background: white;
+    border-radius: 100px;
+    opacity: 0.9;
+}
+
+.cloud::before,
+.cloud::after {
+    content: '';
+    position: absolute;
+    background: white;
+    border-radius: 100px;
+}
+
+.cloud1 {
+    width: 180px;
+    height: 80px;
+    left: 5%;
+    animation: drift 20s infinite linear;
+}
+
+.cloud1::before {
+    width: 120px;
+    height: 120px;
+    top: -50px;
+    left: 20px;
+}
+
+.cloud1::after {
+    width: 100px;
+    height: 100px;
+    top: -40px;
+    right: 20px;
+}
+
+.cloud2 {
+    width: 200px;
+    height: 90px;
+    left: 30%;
+    bottom: 40px;
+    animation: drift 25s infinite linear;
+}
+
+.cloud2::before {
+    width: 140px;
+    height: 140px;
+    top: -60px;
+    left: 30px;
+}
+
+.cloud2::after {
+    width: 110px;
+    height: 110px;
+    top: -50px;
+    right: 30px;
+}
+
+.cloud3 {
+    width: 160px;
+    height: 70px;
+    right: 15%;
+    bottom: 20px;
+    animation: drift 30s infinite linear;
+}
+
+.cloud3::before {
+    width: 100px;
+    height: 100px;
+    top: -40px;
+    left: 20px;
+}
+
+.cloud3::after {
+    width: 90px;
+    height: 90px;
+    top: -35px;
+    right: 15px;
+}
+
+@keyframes drift {
+    from { transform: translateX(0); }
+    to { transform: translateX(30px); }
+}
+
+/* Scroll indicator */
+.scroll-indicator {
+    position: absolute;
+    bottom: 80px;
+    left: 50px;
+    width: 50px;
+    height: 50px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: bounce 2s infinite;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.scroll-indicator::after {
+    content: '↓';
+    color: white;
+    font-size: 24px;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    nav {
+        padding: 20px 30px;
+    }
+
+    .nav-left {
+        gap: 15px;
+    }
+
+    .logo {
+        font-size: 22px;
+    }
+
+    .nav-links {
+        gap: 15px;
+    }
+
+    .nav-links a:not(.login-btn) {
+        display: none;
+    }
+
+    .login-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    .language-dropdown {
+        position: static;
+    }
+
+    .language-btn {
+        font-size: 14px;
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+    }
+
+    .language-menu {
+        right: 20px;
+        left: auto;
+    }
+
+    h1 {
+        font-size: 36px;
+        padding: 0 20px;
+    }
+
+    .cta-button {
+        padding: 15px 40px;
+        font-size: 18px;
+    }
+
+    .moon {
+        width: 180px;
+        height: 180px;
+        left: 10%;
+        top: 150px;
+    }
+
+    .menu-toggle {
+        width: 35px;
+        height: 35px;
+    }
+
+    .menu-toggle span {
+        width: 18px;
+    }
+
+    .side-menu {
+        padding: 80px 30px 30px 30px;
+        width: 220px;
+    }
+
+    .side-menu a {
+        font-size: 16px;
+    }
+
+    .side-menu li {
+        margin: 25px 0;
+    }
+
+    .scroll-indicator {
+        left: 30px;
+        bottom: 60px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .scroll-indicator::after {
+        font-size: 20px;
+    }
+}

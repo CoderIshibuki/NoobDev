@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn Touch Typing - NoobDev</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="hero">
+        <!-- Navigation -->
+        <nav>
+            <div class="nav-left">
+                <!-- Menu Toggle Button -->
+                <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="logo">NoobDev</div>
+            </div>
+            <div class="nav-links">
+                <a href="#start" data-translate="navGetStarted">Get Started</a>
+                <a href="#school" data-translate="navSchool">School Edition</a>
+                <a href="#store" data-translate="navStore">Store</a>
+                <div class="language-dropdown">
+                    <button class="language-btn" id="languageBtn">
+                        <span data-translate="navLanguage">Language</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="language-menu" id="languageMenu">
+                        <a href="#" data-lang="en" class="language-option active">English</a>
+                        <a href="#" data-lang="vi" class="language-option">Vietnamese</a>
+                    </div>
+                </div>
+                <a href="#login" class="login-btn" data-translate="navLogin">Login</a>
+            </div>
+        </nav>
+
+        <!-- Side Menu -->
+        <div class="side-menu" id="sideMenu">
+            <ul>
+                <li><a href="#about" data-translate="menuAbout">About</a></li>
+                <li><a href="#tips" data-translate="menuTips">Tips</a></li>
+                <li><a href="#faq" data-translate="menuFaq">FAQ</a></li>
+                <li><a href="#contact" data-translate="menuContact">Contact</a></li>
+            </ul>
+        </div>
+
+        <!-- Stars -->
+        <div class="stars" id="starsContainer"></div>
+
+        <!-- Moon -->
+        <div class="moon">
+            <div class="moon-crater crater1"></div>
+            <div class="moon-crater crater2"></div>
+            <div class="moon-crater crater3"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <h1 data-translate="heroTitle">Learn Touch Typing for free!</h1>
+            <button class="cta-button" data-translate="heroButton">Get Started</button>
+        </div>
+
+        <!-- Clouds -->
+        <div class="clouds">
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
+            <div class="cloud cloud3"></div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="scroll-indicator"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
