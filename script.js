@@ -11,8 +11,10 @@ const translations = {
         menuFaq: "FAQ",
         menuContact: "Contact",
         heroTitle: "Learn Touch Typing for free!",
-        heroButton: "Get Started",
-        welcomeMessage: "Welcome to NoobDev! Let's start learning typing!",
+        heroSubtitle: "Master keyboard skills with our interactive typing lessons",
+        heroButton: "Start Learning Now",
+        scrollText: "Scroll to explore",
+        welcomeMessage: "Welcome to NoobDev! Let's start learning touch typing!",
         comingSoon: "section coming soon!"
     },
     vi: {
@@ -26,21 +28,20 @@ const translations = {
         menuFaq: "Câu Hỏi Thường Gặp",
         menuContact: "Liên Hệ",
         heroTitle: "Học Đánh Máy Mù Miễn Phí!",
-        heroButton: "Bắt Đầu",
+        heroSubtitle: "Làm chủ kỹ năng bàn phím với bài học đánh máy tương tác",
+        heroButton: "Bắt Đầu Học Ngay",
+        scrollText: "Cuộn để khám phá",
         welcomeMessage: "Chào mừng đến với NoobDev! Hãy bắt đầu học đánh máy!",
         comingSoon: "phần sắp ra mắt!"
     }
 };
 
-// Get current language from localStorage or default to English
 let currentLanguage = localStorage.getItem('language') || 'en';
 
-// Function to translate page
 function translatePage(lang) {
     currentLanguage = lang;
     localStorage.setItem('language', lang);
 
-    // Update all elements with data-translate attribute
     document.querySelectorAll('[data-translate]').forEach(element => {
         const key = element.getAttribute('data-translate');
         if (translations[lang] && translations[lang][key]) {
@@ -48,7 +49,6 @@ function translatePage(lang) {
         }
     });
 
-    // Update active language option
     document.querySelectorAll('.language-option').forEach(option => {
         option.classList.remove('active');
         if (option.getAttribute('data-lang') === lang) {
@@ -57,125 +57,88 @@ function translatePage(lang) {
     });
 }
 
-// Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // Initialize page with saved language
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize language
     translatePage(currentLanguage);
 
-    // Language dropdown functionality
-    const languageBtn = document.getElementById('languageBtn');
-    const languageDropdown = languageBtn?.parentElement;
-    const languageMenu = document.getElementById('languageMenu');
-
-    if (languageBtn && languageDropdown && languageMenu) {
-        // Toggle dropdown
-        languageBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            languageDropdown.classList.toggle('active');
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!languageDropdown.contains(e.target)) {
-                languageDropdown.classList.remove('active');
-            }
-        });
-
-        // Language selection
-        document.querySelectorAll('.language-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.preventDefault();
-                const selectedLang = option.getAttribute('data-lang');
-                translatePage(selectedLang);
-                languageDropdown.classList.remove('active');
-            });
-        });
-    }
-    
-    // Generate random stars
+    // Create stars
     const starsContainer = document.getElementById('starsContainer');
-    const numStars = 100;
-
     if (starsContainer) {
-        for (let i = 0; i < numStars; i++) {
+        for (let i = 0; i < 100; i++) {
             const star = document.createElement('div');
             star.className = 'star';
-            
-            const size = Math.random() * 3 + 1;
-            star.style.width = `${size}px`;
-            star.style.height = `${size}px`;
-            star.style.left = `${Math.random() * 100}%`;
-            star.style.top = `${Math.random() * 80}%`;
-            star.style.animationDelay = `${Math.random() * 3}s`;
-            star.style.animationDuration = `${Math.random() * 3 + 2}s`;
-            
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.width = Math.random() * 2 + 1 + 'px';
+            star.style.height = star.style.width;
+            star.style.animationDelay = Math.random() * 4 + 's';
             starsContainer.appendChild(star);
         }
     }
 
-    // Menu toggle functionality
+    // Menu toggle
     const menuToggle = document.getElementById('menuToggle');
     const sideMenu = document.getElementById('sideMenu');
-
+    
     if (menuToggle && sideMenu) {
-        menuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
+        menuToggle.addEventListener('click', function() {
             menuToggle.classList.toggle('active');
             sideMenu.classList.toggle('active');
         });
 
         // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', function(e) {
             if (!sideMenu.contains(e.target) && !menuToggle.contains(e.target)) {
                 menuToggle.classList.remove('active');
                 sideMenu.classList.remove('active');
             }
         });
+    }
 
-        // Side menu smooth scroll
-        document.querySelectorAll('.side-menu a').forEach(link => {
-            link.addEventListener('click', (e) => {
+    // Language dropdown
+    const languageBtn = document.getElementById('languageBtn');
+    const languageDropdown = document.querySelector('.language-dropdown');
+    
+    if (languageBtn && languageDropdown) {
+        languageBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            languageDropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function() {
+            languageDropdown.classList.remove('active');
+        });
+
+        document.querySelectorAll('.language-option').forEach(option => {
+            option.addEventListener('click', function(e) {
                 e.preventDefault();
-                const targetId = link.getAttribute('href');
-                const targetSection = document.querySelector(targetId);
-                
-                // Close the menu
-                menuToggle.classList.remove('active');
-                sideMenu.classList.remove('active');
-                
-                if (targetSection) {
-                    targetSection.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                } else {
-                    const linkText = link.textContent;
-                    const comingSoon = translations[currentLanguage].comingSoon;
-                    alert(`${linkText} ${comingSoon}`);
-                }
+                const lang = this.getAttribute('data-lang');
+                translatePage(lang);
+                languageDropdown.classList.remove('active');
             });
         });
     }
 
-    // Smooth scroll on scroll indicator click
+    // CTA button
+    const ctaButton = document.querySelector('.cta-button');
+    if (ctaButton) {
+        ctaButton.addEventListener('click', function(e) {
+            if (this.getAttribute('href') === '#') {
+                e.preventDefault();
+                const message = translations[currentLanguage].welcomeMessage;
+                alert(message);
+            }
+        });
+    }
+
+    // Scroll indicator
     const scrollIndicator = document.querySelector('.scroll-indicator');
     if (scrollIndicator) {
-        scrollIndicator.addEventListener('click', () => {
-            window.scrollBy({
+        scrollIndicator.addEventListener('click', function() {
+            window.scrollTo({
                 top: window.innerHeight,
                 behavior: 'smooth'
             });
         });
     }
-
-    // CTA Button click handler
-    const ctaButton = document.querySelector('.cta-button');
-    if (ctaButton) {
-        ctaButton.addEventListener('click', () => {
-            const message = translations[currentLanguage].welcomeMessage;
-            alert(message);
-        });
-    }
-
 });

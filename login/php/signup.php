@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once 'db_connection.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -6,16 +9,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
     
-    // Validate input
     if (empty($name) || empty($email) || empty($password)) {
         die("Please fill all fields");
     }
     
-    // Hash password
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     
     try {
-        // Check if email already exists
         $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->execute([$email]);
         
@@ -23,7 +23,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             die("Email already exists");
         }
         
-        // Insert new user
         $stmt = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
         $stmt->execute([$name, $email, $hashed_password]);
         

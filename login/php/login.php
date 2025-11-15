@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 require_once 'db_connection.php';
 
@@ -12,20 +15,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $user = $stmt->fetch();
         
         if ($user && password_verify($password, $user['password'])) {
-            // Login successful
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['user_email'] = $user['email'];
             
-            echo "Login successful! Welcome " . $user['name'];
-            // Hoặc redirect đến trang chính
-            // header("Location: dashboard.php");
+            // Chuyển hướng đến dashboard
+            header("Location: ../../dashboard.php");
+            exit();
+            
         } else {
             echo "Invalid email or password";
         }
         
     } catch(PDOException $e) {
-        die("Error: " . $e->getMessage());
+        echo "Error: " . $e->getMessage();
     }
 }
 ?>
