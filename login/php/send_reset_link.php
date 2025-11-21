@@ -1,12 +1,16 @@
 <?php
 session_start();
-require_once 'db_connection.php';
+// ĐƯỜNG DẪN ĐÃ CHỈNH SỬA: db_connection.php nằm cùng thư mục
+require_once 'db_connection.php'; 
 
 // ĐƯỜNG DẪN CHÍNH XÁC CHO BẠN
+// Đảm bảo đường dẫn này chính xác (thoát khỏi php/ và login/ để đến vendor)
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+
+$message_html = ""; // Biến để lưu trữ nội dung HTML sẽ hiển thị
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
@@ -29,7 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->execute([$token, $expires, $email]);
             
             // Tạo link reset password
-            $reset_link = "http://localhost:8000/php/reset_password.php?token=$token";
+            // CHÚ Ý: Đường dẫn cần tương đối so với vị trí file PHP này (nếu reset_password.php ở cùng thư mục)
+            $reset_link = "http://localhost:8000/login/php/reset_password.php?token=$token";
             
             // Gửi email
             $mail = new PHPMailer(true);
@@ -67,39 +72,153 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 $mail->send();
                 
-                echo "<div style='text-align: center; padding: 40px; max-width: 500px; margin: 50px auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);'>";
-                echo "<h2 style='color: #4CAF50; margin-bottom: 20px;'>✓ Email Sent!</h2>";
-                echo "<p style='margin-bottom: 20px;'>We've sent a password reset link to:</p>";
-                echo "<p style='font-weight: bold; background: #f8f9fa; padding: 10px; border-radius: 5px;'>$email</p>";
-                echo "<p style='margin-top: 20px; color: #666;'>Please check your email and click the reset link.</p>";
-                echo "<a href='../login.html' style='display: inline-block; margin-top: 20px; padding: 10px 20px; background: #4a8dbf; color: white; text-decoration: none; border-radius: 5px;'>← Back to Login</a>";
-                echo "</div>";
+                // --- THÔNG BÁO THÀNH CÔNG VỚI GIAO DIỆN MỚI ---
+                $message_html = "
+                    <h2 class='message-title success'>✓ Email Đặt lại đã được Gửi!</h2>
+                    <p style='margin-bottom: 20px;'>Chúng tôi đã gửi một liên kết đặt lại mật khẩu đến:</p>
+                    <p class='email-display'>$email</p>
+                    <p style='margin-top: 20px;'>Vui lòng kiểm tra email của bạn và nhấp vào liên kết đặt lại.</p>
+                    <p style='font-size: 0.9em; opacity: 0.8;'>Lưu ý: Liên kết sẽ hết hạn sau 1 giờ.</p>
+                    <a href='../login.html' class='btn-back'>← Trở lại Đăng nhập</a>
+                ";
                 
             } catch (Exception $e) {
-                echo "<div style='text-align: center; padding: 40px; color: red;'>";
-                echo "<h2>Email Error</h2>";
-                echo "<p>Could not send email. Error: {$mail->ErrorInfo}</p>";
-                echo "<a href='../login.html'>← Back to Login</a>";
-                echo "</div>";
+                // --- THÔNG BÁO LỖI GỬI EMAIL VỚI GIAO DIỆN MỚI ---
+                $message_html = "
+                    <h2 class='message-title error'>Lỗi Gửi Email</h2>
+                    <p>Không thể gửi email. Lỗi: {$mail->ErrorInfo}</p>
+                    <a href='../login.html' class='btn-back'>← Trở lại Đăng nhập</a>
+                ";
             }
             
         } else {
-            echo "<div style='text-align: center; padding: 40px; color: red;'>";
-            echo "<h2>Email Not Found</h2>";
-            echo "<p>No account found with that email address.</p>";
-            echo "<a href='../login.html'>← Back to Login</a>";
-            echo "</div>";
+            // --- THÔNG BÁO LỖI EMAIL KHÔNG TỒN TẠI VỚI GIAO DIỆN MỚI ---
+            $message_html = "
+                <h2 class='message-title error'>Email Không Tìm Thấy</h2>
+                <p>Không tìm thấy tài khoản với địa chỉ email này.</p>
+                <a href='../login.html' class='btn-back'>← Trở lại Đăng nhập</a>
+            ";
         }
         
     } catch(PDOException $e) {
-        echo "<div style='text-align: center; padding: 40px; color: red;'>";
-        echo "<h2>Error</h2>";
-        echo "<p>Something went wrong: " . $e->getMessage() . "</p>";
-        echo "<a href='../login.html'>← Back to Login</a>";
-        echo "</div>";
+        // --- THÔNG BÁO LỖI CSDL VỚI GIAO DIỆN MỚI ---
+        $message_html = "
+            <h2 class='message-title error'>Lỗi Cơ sở Dữ liệu</h2>
+            <p>Đã xảy ra lỗi: " . $e->getMessage() . "</p>
+            <a href='../login.html' class='btn-back'>← Trở lại Đăng nhập</a>
+        ";
     }
 } else {
+    // Nếu truy cập trực tiếp bằng GET, chuyển hướng về trang đăng nhập
     header("Location: ../login.html");
     exit();
 }
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset Status - NoobDev</title>
+    <link rel="stylesheet" href="../../style.css"> 
+    
+    <style>
+        /* NỀN XANH DƯƠNG CHỦ ĐẠO */
+        body {
+            background: linear-gradient(135deg, #0a2647 0%, #1a4d7a 100%);
+            min-height: 100vh;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* CONTAINER THÔNG BÁO */
+        .message-container {
+            position: relative;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.15); 
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .message-title {
+            font-size: 28px;
+            margin-bottom: 25px;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .message-container p {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .success {
+            color: #4CAF50; /* Xanh lá cây cho thành công */
+        }
+        .error {
+            color: #f44336; /* Đỏ cho lỗi */
+        }
+
+        .email-display {
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px auto;
+            color: #d1e7ff;
+            max-width: 80%;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 25px;
+            background: #4a8dbf;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: #3a7daf;
+            transform: translateY(-2px);
+        }
+        
+        /* Đảm bảo các thành phần nền được định vị đúng */
+        .stars, .moon, .clouds {
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="starsContainer"></div>
+    <div class="moon">
+        <div class="moon-crater crater1"></div>
+        <div class="moon-crater crater2"></div>
+        <div class="moon-crater crater3"></div>
+    </div>
+    <div class="clouds">
+        <div class="cloud cloud1"></div>
+        <div class="cloud cloud2"></div>
+        <div class="cloud cloud3"></div>
+    </div>
+    
+    <div class="message-container">
+        <?php echo $message_html; ?>
+    </div>
+
+    <script src="../../script.js"></script> 
+</body>
+</html>
