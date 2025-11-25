@@ -1,0 +1,231 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 130px; /* Tăng khoảng đệm để tiêu đề không sát mép trên */
+}
+
+body {
+    /* Tăng base font size */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    overflow-x: hidden;
+    background: #2c7da0;
+    color: white;
+    line-height: 1.6;
+    font-size: 18px; /* Base size lớn hơn */
+}
+
+.hero {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a2647 0%, #1a4d7a 50%, #2c7da0 100%);
+    position: relative;
+    padding-bottom: 120px;
+}
+
+/* --- NAVIGATION --- */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 60px;
+    position: fixed;
+    top: 0; left: 0; width: 100%;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-left { display: flex; align-items: center; gap: 25px; }
+.logo { font-size: 32px; font-weight: 700; color: white; letter-spacing: -0.5px; }
+
+.nav-links { display: flex; gap: 35px; align-items: center; }
+.nav-links a {
+    color: white; text-decoration: none; font-size: 17px; /* Nav text to hơn xíu */
+    font-weight: 500; transition: all 0.3s ease; position: relative;
+}
+.nav-links .menu-FAQ { color: #5babe8; font-weight: 700; }
+
+.nav-links a:not(.login-btn):not(.menu-FAQ):hover { color: #4a8dbf; transform: translateY(-1px); }
+.nav-links a:not(.login-btn)::after {
+    content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px;
+    background: #4a8dbf; transition: width 0.3s ease;
+}
+.nav-links a:not(.login-btn):not(.menu-FAQ):hover::after { width: 100%; }
+
+.login-btn {
+    background: linear-gradient(135deg, #4a8dbf, #2c7da0);
+    color: white !important; padding: 12px 35px; border-radius: 25px;
+    font-weight: 600; border: none; transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(74, 141, 191, 0.3);
+    font-size: 16px;
+}
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(74, 141, 191, 0.4);
+    background: linear-gradient(135deg, #5a9dcf, #3c8db0);
+}
+
+/* --- LANGUAGE DROPDOWN --- */
+.language-dropdown { position: relative; }
+.language-btn {
+    background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 20px; transition: all 0.3s ease; backdrop-filter: blur(10px);
+}
+.language-btn:hover { background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.3); }
+.dropdown-arrow { font-size: 12px; transition: transform 0.3s ease; }
+.language-dropdown.active .dropdown-arrow { transform: rotate(180deg); }
+.language-menu {
+    position: absolute; top: calc(100% + 10px); right: 0;
+    background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px);
+    border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    min-width: 180px; opacity: 0; visibility: hidden; transform: translateY(-10px);
+    transition: all 0.3s ease; z-index: 1000; overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.language-menu::before {
+    content: ''; position: absolute; top: -6px; right: 20px; width: 12px; height: 12px;
+    background: white; transform: rotate(45deg);
+}
+.language-dropdown.active .language-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.language-option {
+    display: flex; align-items: center; padding: 14px 25px;
+    color: #0a2647 !important; text-decoration: none; font-size: 16px;
+    transition: all 0.2s ease; position: relative; border-bottom: 1px solid rgba(10, 38, 71, 0.1);
+}
+.language-option:last-child { border-bottom: none; }
+.language-option:hover { background: rgba(10, 38, 71, 0.08); padding-left: 30px; }
+.language-option.active { background: rgba(10, 38, 71, 0.12); font-weight: 600; }
+.language-option.active::after { content: '✓'; position: absolute; right: 20px; color: #0a2647; font-weight: bold; }
+
+/* --- TITLE STYLING --- */
+.content-header {
+    padding-top: 150px;
+    text-align: center;
+    margin-bottom: 60px;
+    animation: fadeInDown 1s ease-out;
+    position: relative;
+    z-index: 10;
+}
+
+.content-header h1 {
+    font-size: 80px; /* To hơn nữa để gây ấn tượng */
+    font-weight: 800; letter-spacing: -3px; margin-bottom: 20px;
+    background: linear-gradient(to right, #ffffff 10%, #5babe8 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 20px rgba(91, 171, 232, 0.5));
+}
+
+.content-header p { color: #d1e8ff; font-size: 40px; font-weight: 300; }
+
+/* --- TABLE OF CONTENTS --- */
+.faq-toc-container {
+    max-width: 1000px; margin: 0 auto 90px auto; position: relative; z-index: 10; padding: 0 20px;
+}
+
+.faq-toc {
+    background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 25px; padding: 50px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3); animation: fadeInUp 1s ease-out 0.3s both;
+}
+
+.faq-toc h2 { color: #5babe8; margin-bottom: 30px; font-weight: 600; text-align: center; text-transform: uppercase; letter-spacing: 3px; font-size: 40px;}
+.faq-toc ol { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 50px; padding-left: 25px; }
+.faq-toc li { color: rgba(255,255,255,0.6); font-size: 20px; /* Tăng cỡ chữ list */ margin-bottom: 5px; }
+.faq-toc a { color: rgba(255, 255, 255, 0.95); text-decoration: none; transition: all 0.2s ease; display: inline-block; font-weight: 500; }
+.faq-toc a:hover { color: #5babe8; transform: translateX(8px); text-shadow: 0 0 10px rgba(91, 171, 232, 0.8); }
+
+/* --- FAQ CARDS (IMPROVED VISIBILITY) --- */
+.faq-answers-container {
+    max-width: 1000px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 10;
+    /* font-size: 50px; */
+}
+
+.faq-answers-container p {
+    font-size: 25px;
+}
+.faq-card {
+    /* Tăng độ đậm nền để chữ dễ đọc hơn */
+    background: rgba(13, 45, 80, 0.65); 
+    /* background:rgba(30, 75, 115, 0.4); */
+    backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px; padding: 45px; /* Padding rộng hơn */
+    margin-bottom: 40px;
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative; animation: fadeInUp 1s ease-out 0.5s both;
+    /* font-size: 20px; */
+}
+
+.faq-card:hover {
+    transform: translateY(-8px);
+    background: rgba(20, 55, 90, 0.85); /* Nền khi hover rõ hơn */
+    border-color: #5babe8;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(91, 171, 232, 0.2);
+}
+
+/* HIGHLIGHT RÕ RÀNG KHI SCROLL TỚI (TARGET) */
+.faq-card:target { animation: targetFlash 2s ease-out forwards; }
+
+@keyframes targetFlash {
+    0% { 
+        background: rgba(91, 171, 232, 0.4); /* Flash sáng màu xanh */
+        box-shadow: 0 0 60px rgba(91, 171, 232, 0.8);
+        border-color: white;
+        transform: scale(1.03);
+    }
+    100% { 
+        background: rgba(25, 65, 110, 0.8); /* Giữ trạng thái nền sáng sau khi flash */
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        border-color: rgba(91, 171, 232, 0.6);
+        transform: scale(1);
+    }
+}
+
+.faq-card h3 {
+    color: #5babe8; font-size: 29px; /* Title to hơn */
+    font-weight: 700; margin-bottom: 20px; display: flex; align-items: center;
+}
+.faq-card h3::before {
+    content: 'Q.'; margin-right: 15px; background: rgba(91, 171, 232, 0.15);
+    padding: 4px 12px; border-radius: 8px; font-size: 18px; color: #5babe8;
+}
+.faq-card p {
+    /* font-weight: 600; */
+    color: rgba(255, 255, 255, 0.95); /* Chữ trắng sáng hơn */
+    font-size: 22px; /* Nội dung to, dễ đọc */
+    font-weight: 400; line-height: 1.8; /* Dãn dòng thoáng */
+}
+
+/* Utility Styles */
+.stars { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
+.star { position: absolute; background: white; border-radius: 50%; animation: twinkle 4s infinite; }
+@keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+.menu-toggle {
+    display: none; flex-direction: column; gap: 5px; background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; cursor: pointer; padding: 12px;
+}
+.menu-toggle span { width: 25px; height: 3px; background: white; transition: 0.3s; }
+
+.side-menu {
+    position: fixed; left: -320px; top: 0; height: 100vh; width: 300px;
+    background: rgba(10, 38, 71, 0.98); backdrop-filter: blur(20px); z-index: 1000;
+    transition: left 0.4s ease; padding: 100px 30px 30px; box-shadow: 5px 0 30px rgba(0, 0, 0, 0.5);
+}
+.side-menu.active { left: 0; }
+.side-menu ul { list-style: none; }
+.side-menu li { margin: 25px 0; }
+.side-menu a { color: white; text-decoration: none; font-size: 20px; }
+
+@media (max-width: 768px) {
+    .faq-toc ol { grid-template-columns: 1fr; }
+    .content-header h1 { font-size: 48px; }
+    .nav-links { display: none; }
+    .menu-toggle { display: flex; }
+    .faq-card { padding: 30px; }
+    .faq-card p { font-size: 17px; }
+}
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }

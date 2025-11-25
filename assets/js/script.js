@@ -1,9 +1,10 @@
 // Translation dictionary
 const translations = {
     en: {
-        navGetStarted: "Get Started",
-        navSchool: "School Edition",
-        navStore: "Store",
+        navHome: "Home",
+        navAbout: "About",
+        navTips: "Tips",
+        navFAQ: "FAQ",
         navLanguage: "Language",
         navLogin: "Login",
         menuAbout: "About",
@@ -18,9 +19,10 @@ const translations = {
         comingSoon: "section coming soon!"
     },
     vi: {
-        navGetStarted: "Bắt Đầu",
-        navSchool: "Phiên Bản Trường Học",
-        navStore: "Cửa Hàng",
+        navHome: "Trang chủ",
+        navAbout: "Giới thiệu",
+        navTips: "Mẹo",
+        navFAQ: "Hỏi đáp",
         navLanguage: "Ngôn Ngữ",
         navLogin: "Đăng Nhập",
         menuAbout: "Giới Thiệu",
