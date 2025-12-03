@@ -1,18 +1,16 @@
-
-// --- TRANSLATION DICTIONARY ---
 const translations = {
     en: {
         navHome: "Home", navAbout: "About", navTips: "Tips", navFAQ: "FAQ", navTyping: "Typing",
         navLanguage: "Language", navLogin: "Login",
-        pageTitle: "Frequently Asked Questions - FAQ",
-        pageSubtitle: "Everything you need to know about typing & NoobDev",
+        pageTitle: "How to type faster - 12 Tips",
+        pageSubtitle: "These are some tips for you to improve typing",
         tocTitle: "Table of contents"
     },
     vi: {
         navHome: "Trang chủ", navAbout: "Giới thiệu", navTips: "Mẹo", navFAQ: "Hỏi đáp", navTyping: "Gõ phím",
         navLanguage: "Ngôn ngữ", navLogin: "Đăng nhập",
-        pageTitle: "Câu hỏi thường gặp - FAQ",
-        pageSubtitle: "Mọi thứ bạn cần biết về gõ phím & NoobDev",
+        pageTitle: "Làm thế nào để gõ nhanh - 12 mẹo",
+        pageSubtitle: "Dưới đây là 1 số mẹo cho bạn cải thiện gõ phím",
         tocTitle: "Mục lục"
     }
 };

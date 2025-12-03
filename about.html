@@ -3,101 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About's Page </title>
-    <link rel="stylesheet" href="./assets/css/pages/about.css">
+    <title>About Us - NoobDev</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    
+    <link rel="stylesheet" href="./assets/css/pages/about.css"></link>
 </head>
 <body>
-    <div class="hero">
-        <!-- Navigation -->
-        <nav>
-            <div class="nav-left">
-                <!-- Menu Toggle Button -->
-                <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <div class="logo">NoobDev</div>
-            </div>
-            <div class="nav-links">
-                <a href="index.html" data-translate="navHome">Home</a>
-                <a href="about.html" data-translate="navAbout" class="menu-about">
-                    About
-                </a>
-                <a href="tips.html" data-translate="navTips">Tips</a>
-                <a href="FAQ.html" data-translate="navFAQ" >FAQ</a>
-                <a href="typing.html" data-translate="navTyping">Typing</a>
-                
-                <div class="language-dropdown">
-                    <button class="language-btn" id="languageBtn">
-                        <span data-translate="navLanguage">Language</span>
-                        <span class="dropdown-arrow">▼</span>
-                    </button>
-                    <div class="language-menu" id="languageMenu">
-                        <a href="#" data-lang="en" class="language-option active">English</a>
-                        <a href="#" data-lang="vi" class="language-option">Vietnamese</a>
-                    </div>
-                </div>
-                <a href="login/login.html" class="login-btn" data-translate="navLogin">Login</a>
-            </div>
-        </nav>
 
-        <!-- Side Menu -->
-        <div class="side-menu" id="sideMenu">
-            <div class="side-menu-header">
-                <div class="logo">NoobDev</div>
-            </div>
-            <ul>
-                <li><a href="#about" data-translate="menuAbout">About</a></li>
-                <li><a href="#tips" data-translate="menuTips">Tips</a></li>
-                <li><a href="#faq" data-translate="menuFaq">FAQ</a></li>
-                <li><a href="#contact" data-translate="menuContact">Contact</a></li>
-            </ul>
-        </div>
-
-        <!-- Stars -->
+    <!-- Background Elements -->
+    <div class="background-wrapper">
         <div class="stars" id="starsContainer"></div>
-
-        
-
-        <!-- Main Content -->
-        <div class="content-header">
-            <h1 data-translate="pageTitle">Typing is more than just hitting keys.</h1>    <br>
+        <div class="moon">
+            <div class="moon-crater crater1"></div>
+            <div class="moon-crater crater2"></div>
         </div>
-
-        <div class="content-paragraph">
-            <h2>
-                <strong>About my team</strong>
-                <p>
-                    We are a small team of developers and design enthusiasts who obsess over mechanical keyboards and WPM (Words Per Minute) charts. We built <strong><i>NoobDev</i></strong> because we wanted a better place to practice, and we hope you enjoy using it as much as we enjoyed building it.
-                </p>
-            </h2>
-            
-            <h2>
-                <strong>Our Mission</strong>
-                <p>
-                    At <strong><i>NoobDev</i></strong>, we believe that typing is the foundational skill of the digital age. Whether you are a coder, a writer, a student, or a gamer, the keyboard is your primary tool for expression. Our mission is simple: to help you bridge the gap between your thoughts and the screen with speed, accuracy, and fluidity.
-                </p>
-            </h2>
-
-            <h2>
-                <strong>Why We Built This</strong>
-                <p>
-                    
-                    We were tired of cluttered, ad-heavy typing tutors that felt like they were stuck in the 1990s. We wanted to build a sanctuary for typists—a place that is:
-                    <ul>
-                        <li><strong><i>Minimalist:</i></strong> No distractions. Just you and the text.</li>
-                        <li><strong><i>Customizable:</i></strong> Tailored to your aesthetic and performance needs.</li>
-                        <li><strong><i>Focus:</i></strong> A clean interface designed to help you enter the "flow state."</li>
-                    </ul>
-
-                </p>
-            </h2>
-
+        <div class="clouds">
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
         </div>
-        
     </div>
 
-    <script src="assets/js/script.js"></script>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">NoobDev</div>
+        <div class="nav-links">
+            <a href="index.html" data-translate="navHome">Home</a>
+            <a href="about.html" class="active" data-translate="navAbout">About</a>
+            <a href="tips.html" data-translate="navTips">Tips</a>
+            <a href="FAQ.html" data-translate="navFAQ">FAQ</a>
+            <a href="typing.html" data-translate="navTyping">Typing</a>
+            
+            <div class="language-dropdown">
+                <button class="language-btn" id="languageBtn">
+                    <span data-translate="navLanguage">Language</span>
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <div class="language-menu" id="languageMenu">
+                    <a href="#" data-lang="en" class="language-option active-lang">English</a>
+                    <a href="#" data-lang="vi" class="language-option">Vietnamese</a>
+                </div>
+            </div>
+
+            <a href="login/login.html" class="login-btn" data-translate="navLogin">Login</a>
+        </div>
+        <button class="menu-toggle"><span style="background:white; height:2px; width:20px; display:block; margin-bottom:5px;"></span><span style="background:white; height:2px; width:20px; display:block; margin-bottom:5px;"></span><span style="background:white; height:2px; width:20px; display:block;"></span></button>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        
+        <!-- Header -->
+        <header class="about-header">
+            <h1 id="typing-text"></h1>
+            <p>Bridging the gap between your thoughts and the screen.</p>
+        </header>
+
+        <!-- Mission Grid -->
+        <div class="story-grid">
+            <!-- Card 1: Who We Are -->
+            <div class="glass-card">
+                <div class="feature-icon"><i class="fas fa-users-gear"></i></div>
+                <h3>Who is NoobDev?</h3>
+                <p>
+                    We are a collective of developers, designers, and keyboard enthusiasts. 
+                    The name <strong>"NoobDev"</strong> reminds us that everyone starts somewhere. 
+                    We built this platform to turn "noobs" into typing pros.
+                </p>
+            </div>
+
+            <!-- Card 2: Mission -->
+            <div class="glass-card">
+                <div class="feature-icon"><i class="fas fa-rocket"></i></div>
+                <h3>Our Mission</h3>
+                <p>
+                    Typing is the foundational skill of the digital age. Whether you're a coder debugging at 2 AM or a writer crafting a novel, 
+                    the keyboard is your instrument. We aim to make practice <strong>efficient and minimalist</strong>.
+                </p>
+            </div>
+
+            <!-- Card 3: Core Values -->
+            <div class="glass-card">
+                <div class="feature-icon"><i class="fas fa-heart"></i></div>
+                <h3>Why Choose Us?</h3>
+                <ul>
+                    <li><strong>Minimalist:</strong> No clutter, just you and the text.</li>
+                    <li><strong>Ads-Free:</strong> We prioritize experience over profit.</li>
+                    <li><strong>Community:</strong> Built by devs, for everyone.</li>
+                </ul>
+            </div>
+
+            <!-- NEW CARD 4: The "Noob" Mindset -->
+            <div class="glass-card">
+                <div class="feature-icon"><i class="fas fa-seedling"></i></div>
+                <h3>The "Noob" Mindset</h3>
+                <p>
+                    We wear the badge of "Noob" with pride. Being a beginner isn't a weakness; it's a state of infinite potential. 
+                    We celebrate every WPM increase, no matter how small, and believe that persistence beats talent every time.
+                </p>
+            </div>
+
+            <!-- NEW CARD 5: Future Roadmap -->
+            <div class="glass-card">
+                <div class="feature-icon"><i class="fas fa-map-location-dot"></i></div>
+                <h3>What's Next?</h3>
+                <p>
+                    We aren't stopping at static lessons. We are building the ultimate typing ecosystem. 
+                    <strong>Coming soon:</strong> Multiplayer battles, custom mechanical switch sound packs (Thock vs Clack), and IDE-style practice modes for programmers.
+                </p>
+            </div>
+
+            <!-- NEW CARD 6: Community Driven -->
+            <div class="glass-card">
+                <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                <h3>Community First</h3>
+                <p>
+                    NoobDev isn't just a tool; it's a gathering place. Our code is transparent, and our ears are open. 
+                    We actively listen to every pull request, feedback, and feature suggestion from our users to shape the future of this platform.
+                </p>
+            </div>
+        </div>
+
+        <!-- Team Section -->
+        <div class="team-section">
+            <h2 class="section-title">Meet the Team</h2>
+            <div class="team-grid">
+                <!-- Member 1 -->
+                <div class="team-member">
+                    <div class="avatar-placeholder"><i class="fas fa-user-astronaut"></i></div>
+                    <div class="team-name">Huỳnh Minh Trí</div>
+                    <div class="team-role">Lead Developer</div>
+                </div>
+                <!-- Member 2 -->
+                <div class="team-member">
+                    <div class="avatar-placeholder"><i class="fas fa-code"></i></div>
+                    <div class="team-name">Huỳnh Phú Vinh</div>
+                    <div class="team-role">UI/UX Designer</div>
+                </div>
+                <!-- Member 3 -->
+                <div class="team-member">
+                    <div class="avatar-placeholder"><i class="fas fa-terminal"></i></div>
+                    <div class="team-name">Trần Vũ Hòa Phát</div>
+                    <div class="team-role">Backend Engineer</div>
+                </div>
+                <!-- Member 4 (NEW ADDITION) -->
+                <div class="team-member">
+                    <div class="avatar-placeholder"><i class="fas fa-laptop-code"></i></div>
+                    <div class="team-name">Hứa Nhựt Tuấn</div>
+                    <div class="team-role">Fullstack Dev</div>
+                </div>
+                <!-- Member 5 (Formerly Member 4/You?) -->
+                <div class="team-member">
+                    <div class="avatar-placeholder"><i class="fas fa-keyboard"></i></div>
+                    <div class="team-name">Phạm Hữu Tài</div>
+                    <div class="team-role">Documents</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="tech-stack">
+            <h3 style="margin-bottom: 20px;">Built With Passion & Code</h3>
+            <p style="color: #cbd5e1;">Powered by modern web technologies.</p>
+            <div class="tech-icons">
+                <i class="fab fa-html5 tech-item" title="HTML5"></i>
+                <i class="fab fa-css3-alt tech-item" title="CSS3"></i>
+                <i class="fab fa-js tech-item" title="JavaScript"></i>
+                <i class="fab fa-git-alt tech-item" title="Git"></i>
+                <i class="fas fa-keyboard tech-item" title="Mechanical Keyboards"></i>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2024 NoobDev Team. Keep Clacking.</p>
+    </footer>
+
+    <script src="./assets/js/pages/about.js">
+        // --- 1. Star Generation Logic ---
+        
+    </script>
 </body>
 </html>

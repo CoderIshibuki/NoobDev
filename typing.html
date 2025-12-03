@@ -98,7 +98,14 @@
         }
         .language-dropdown.active .language-menu { opacity: 1; visibility: visible; transform: translateY(0); }
         .language-option { display: block; padding: 10px 20px; color: #0a2647 !important; text-decoration: none; }
-
+        
+        .nav-links .menu-Typing { color: #5babe8; font-weight: 700; }
+        .nav-links a:not(.login-btn):not(.menu-Typing):hover { color: #4a8dbf; transform: translateY(-1px); }
+        .nav-links a:not(.login-btn)::after {
+            content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px;
+            background: #4a8dbf; transition: width 0.3s ease;
+        }
+        .nav-links a:not(.login-btn):not(.menu-Typing):hover::after { width: 100%; }
         /* Background Elements */
         .stars { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; pointer-events: none; }
         .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 4s infinite; }
@@ -338,7 +345,7 @@
                 <a href="about.html" data-translate="navAbout">About</a>
                 <a href="tips.html" data-translate="navTips">Tips</a>
                 <a href="FAQ.html" data-translate="navFAQ">FAQ</a>
-                <a href="typing.html" data-translate="navTyping">Typing</a>
+                <a href="typing.html" data-translate="navTyping" class="menu-Typing">Typing</a>
                 
                 <div class="language-dropdown">
                     <button class="language-btn" id="languageBtn"><span data-translate="navLanguage">Language</span> ▼</button>
@@ -628,7 +635,7 @@
             const btn = document.querySelector(`.level-btn[data-id="${id}"]`);
             if(btn) btn.classList.add('active');
 
-            maxTime = 300; 
+            maxTime = 60; 
             renderText();
         }
 
