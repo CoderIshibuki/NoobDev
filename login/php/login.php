@@ -3,7 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 session_start();
-require_once 'db_connection.php';
+require_once 'db_connection.php'; // Cùng cấp
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
@@ -19,12 +19,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['user_email'] = $user['email'];
             
-            // Chuyển hướng đến dashboard
+            // SỬA: Ra khỏi thư mục php (../), ra khỏi login (../) -> Vào root
             header("Location: ../../dashboard.php");
             exit();
             
         } else {
-            echo "Invalid email or password";
+            // Có thể thêm redirect về login kèm thông báo lỗi nếu muốn
+            echo "<script>alert('Invalid email or password'); window.location.href='../login.html';</script>";
         }
         
     } catch(PDOException $e) {

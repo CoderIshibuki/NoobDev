@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Sign In / Sign Up / Forgot Password</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In / Sign Up - NoobDev</title>
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,800" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <h2>Sign in - Sign up</h2>
   <div class="container" id="container">
-    <!-- Sign Up -->
     <div class="form-container sign-up-container">
       <form action="php/signup.php" method="POST">
         <h1>Create Account</h1>
@@ -20,20 +20,18 @@
       </form>
     </div>
 
-    <!-- Sign In -->
     <div class="form-container sign-in-container">
       <form action="php/login.php" method="POST">
         <h1>Sign in</h1>
         <input type="email" name="email" placeholder="Email" required />
         <input type="password" name="password" placeholder="Password" required />
         <div class="forgot-wrapper">
-        <a href="#" id="forgotLink">Forgot your password?</a>
+            <a href="#" id="forgotLink">Forgot your password?</a>
         </div>
         <button type="submit">Sign In</button>
       </form>
     </div>
 
-    <!-- Forgot Password -->
     <div class="form-container forgot-container">
        <form action="php/send_reset_link.php" method="POST">
         <h1>Reset Password</h1>
@@ -44,7 +42,6 @@
        </form>
     </div>
 
-    <!-- Overlay -->
     <div class="overlay-container">
       <div class="overlay">
         <div class="overlay-panel overlay-left">
