@@ -1,10 +1,8 @@
-/* assets/js/typing.js - Full Refactor */
+/* assets/js/typing.js - Full Logic Refactor with New UI */
 
 // ======================================================
-// 1. DATA STRUCTURES (DỮ LIỆU BÀI HỌC)
+// 1. DATA STRUCTURES
 // ======================================================
-
-// --- A. Beginner Lessons ---
 const lessonData = [
     {
         title: "Beginner: The Essentials",
@@ -24,7 +22,6 @@ const lessonData = [
     }
 ];
 
-// --- B. Code Practice Data ---
 const codeData = [
     {
         title: "Programming Languages",
@@ -39,6 +36,28 @@ const codeData = [
     }
 ];
 
+const testData = [
+    {
+        title: "Timed Tests",
+        lessons: [
+            { id: 401, name: "15 Seconds", keys: "Speed Burst", type: "timetest", duration: 15, icon: "fa-stopwatch" },
+            { id: 402, name: "30 Seconds", keys: "Standard Sprint", type: "timetest", duration: 30, icon: "fa-clock" },
+            { id: 403, name: "60 Seconds", keys: "Endurance", type: "timetest", duration: 60, icon: "fa-hourglass-half" },
+            { id: 404, name: "3 Minutes", keys: "Stamina", type: "timetest", duration: 180, icon: "fa-running" },
+            { id: 405, name: "5 Minutes", keys: "Marathon", type: "timetest", duration: 300, icon: "fa-coffee" },
+            { id: 406, name: "10 Minutes", keys: "Hardcore", type: "timetest", duration: 600, icon: "fa-fire" }
+        ]
+    },
+    {
+        title: "Page Tests",
+        lessons: [
+            { id: 201, name: "Short Text", keys: "~30 words", type: "pagetest", text: "Typing is a skill that can significantly improve your productivity. Focus on accuracy first!", icon: "fa-file-alt" },
+            { id: 202, name: "Medium Text", keys: "~60 words", type: "pagetest", text: "The concept of 'touch typing' involves using muscle memory to find keys without looking at the keyboard. This method is far superior to the 'hunt and peck' method. To master touch typing, one must practice regularly.", icon: "fa-file-invoice" },
+            { id: 203, name: "Full Text", keys: "Full Paragraph", type: "pagetest", text: "Typing is a skill that can significantly improve your productivity in the digital age. Whether you are writing an email, coding a software application, or writing a novel, the ability to type quickly and accurately allows you to translate your thoughts into text with minimal friction. The concept of 'touch typing' involves using muscle memory to find keys without looking at the keyboard. Remember to maintain good posture, keep your wrists elevated, and take breaks to stretch your hands. Happy typing!", icon: "fa-book-open" }
+        ]
+    }
+];
+
 const codeSnippets = {
     python: ["print('Hello World')", "def factorial(n): return 1 if n==0 else n*factorial(n-1)", "for i in range(10): print(i)", "import random\nprint(random.randint(1, 100))"],
     cpp: ["#include <iostream>\nusing namespace std;\nint main() { cout << 'Hello'; return 0; }", "void swap(int &a, int &b) { int t = a; a = b; b = t; }", "for(int i=0; i<10; i++) { cout << i << endl; }"],
@@ -48,35 +67,13 @@ const codeSnippets = {
     php: ["<?php echo 'Hello World'; ?>", "$arr = array(1, 2, 3, 4);", "function test($x) { return $x * 2; }", "foreach ($colors as $value) { echo $value; }"]
 };
 
-// --- C. Test Data (Page & Time) ---
-const pageTexts = {
-    short: "Typing is a skill that can significantly improve your productivity. Focus on accuracy first!",
-    medium: "The concept of 'touch typing' involves using muscle memory to find keys without looking at the keyboard. This method is far superior to the 'hunt and peck' method. To master touch typing, one must practice regularly.",
-    full: "Typing is a skill that can significantly improve your productivity in the digital age. Whether you are writing an email, coding a software application, or writing a novel, the ability to type quickly and accurately allows you to translate your thoughts into text with minimal friction. The concept of 'touch typing' involves using muscle memory to find keys without looking at the keyboard. Remember to maintain good posture, keep your wrists elevated, and take breaks to stretch your hands. Happy typing!"
-};
-
-const testData = [
-    {
-        title: "Timed Tests",
-        lessons: [
-            { id: 401, name: "15 Seconds", keys: "Speed Burst", type: "timetest", duration: 15, icon: "fa-stopwatch" },
-            { id: 402, name: "30 Seconds", keys: "Standard Sprint", type: "timetest", duration: 30, icon: "fa-clock" },
-            { id: 403, name: "60 Seconds", keys: "Endurance", type: "timetest", duration: 60, icon: "fa-hourglass-half" }
-        ]
-    },
-    {
-        title: "Page Tests",
-        lessons: [
-            { id: 201, name: "Short Text", keys: "~30 words", type: "pagetest", text: pageTexts.short, icon: "fa-file-alt" },
-            { id: 202, name: "Medium Text", keys: "~60 words", type: "pagetest", text: pageTexts.medium, icon: "fa-file-invoice" },
-            { id: 203, name: "Full Text", keys: "Full Paragraph", type: "pagetest", text: pageTexts.full, icon: "fa-book-open" }
-        ]
-    }
-];
-
 const randomWords = "the be to of and a in that have I it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us".split(" ");
-const externalRestartBtn = document.getElementById('externalRestartBtn'); 
-const navControls = document.querySelector('.nav-controls'); // Wrapper của 2 nút
+
+// UI Translations
+const translations = {
+    en: { navHome: "Home", navAbout: "About", navTips: "Tips", navFAQ: "FAQ", navTyping: "Typing", navLanguage: "Language" },
+    vi: { navHome: "Trang chủ", navAbout: "Giới thiệu", navTips: "Mẹo", navFAQ: "Hỏi đáp", navTyping: "Gõ phím", navLanguage: "Ngôn ngữ" }
+};
 
 // ======================================================
 // 2. GLOBAL VARIABLES
@@ -90,12 +87,15 @@ let maxTime = 60;
 let timeLeft = maxTime;
 let currentMode = 'beginner'; 
 let activeLessonId = null;
-let currentLessonObj = null; // Lưu object bài học hiện tại để dùng cho nút New Text
+let currentLessonObj = null; 
+
+let pendingLesson = null;
+let isCustomPending = false;
+let pendingCustomText = "";
 
 // DOM Elements
 const dashboard = document.getElementById('lessonDashboard');
 const gameArea = document.getElementById('gameArea');
-const backBtn = document.getElementById('backToLessonsBtn');
 const display = document.getElementById('quoteDisplay');
 const inputField = document.getElementById('inputField');
 const focusOverlay = document.getElementById('focusOverlay');
@@ -103,133 +103,268 @@ const typingWrapper = document.getElementById('typingWrapper');
 const gameStats = document.getElementById('gameStats'); 
 const minigamePanel = document.getElementById('minigamePanel');
 const customPanel = document.getElementById('customPanel');
+const navControls = document.getElementById('navControls');
+const navNewTextBtn = document.getElementById('navNewTextBtn');
+
+// Modals
+const timeModal = document.getElementById('timeModal');
+const timeInput = document.getElementById('timeInput');
+const customModal = document.getElementById('customModal');
 
 // Result Buttons
 const btnNext = document.getElementById('btnNext');
 const btnNewText = document.getElementById('btnNewText');
-const btnRestart = document.getElementById('btnRestart');
 
 // Stats
 const timeTag = document.getElementById('timeLeft');
 const wpmTag = document.getElementById('wpm');
 const accTag = document.getElementById('accuracy');
 
-// Helper: Generate Storage Key
 function getStorageKey(lessonId) {
     if (typeof CURRENT_USER_ID !== 'undefined') return `u_${CURRENT_USER_ID}_lesson_${lessonId}_stars`;
     return `lesson_${lessonId}_stars`;
 }
 
-
 // ======================================================
 // 3. INITIALIZATION & EVENTS
 // ======================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Mặc định vào màn hình Beginner
+    initUI(); // Initialize Nav, Lang, Stars
+    
+    // Default to Beginner
     if(dashboard) showLessonDashboard(); 
     
-    // Focus logic
-    if(focusOverlay) {
-        focusOverlay.addEventListener('click', (e) => {
-            e.stopPropagation();
-            inputField.focus();
+    // Auto format time input
+    if(timeInput) {
+        timeInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); 
+            if (value.length >= 3) value = value.substring(0, 2) + ':' + value.substring(2, 4);
+            e.target.value = value;
         });
     }
-    if(typingWrapper) typingWrapper.addEventListener('click', () => inputField.focus());
 
+    // --- GAME EVENT LISTENERS ---
+    if(focusOverlay) {
+        focusOverlay.addEventListener('click', (e) => {
+            e.stopPropagation(); inputField.focus();
+            focusOverlay.classList.add('hidden'); focusOverlay.style.opacity = '0';
+        });
+    }
+    if(typingWrapper) {
+        typingWrapper.addEventListener('click', () => { inputField.focus(); });
+    }
     inputField.addEventListener('focus', () => {
-        if(focusOverlay) {
-            focusOverlay.style.opacity = '0';
-            setTimeout(() => { focusOverlay.style.display = 'none'; }, 200);
-        }
+        if(focusOverlay) { focusOverlay.classList.add('hidden'); focusOverlay.style.opacity = '0'; }
     });
-
     inputField.addEventListener('blur', () => {
-        if(focusOverlay) {
-            focusOverlay.style.display = 'flex';
-            setTimeout(() => { focusOverlay.style.opacity = '1'; }, 10);
+        if(gameArea.style.display !== 'none' && focusOverlay) {
+            focusOverlay.classList.remove('hidden'); focusOverlay.style.opacity = '1';
         }
     });
-
-    // Typing Event
     inputField.addEventListener('input', initTyping);
 });
 
+// --- NEW UI FUNCTIONS (From Tips.js) ---
+function initUI() {
+    // 1. Stars Animation
+    const starContainer = document.getElementById('starsContainer');
+    if(starContainer) {
+        for(let i=0; i< 100; i++) { // Generated stars
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            const size = Math.random() * 2.5 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.animationDelay = Math.random() * 4 + 's';
+            star.style.opacity = Math.random() * 0.7 + 0.3;
+            starContainer.appendChild(star);
+        }
+    }
+
+    // 2. Language Dropdown
+    const langBtn = document.getElementById('languageBtn');
+    const langDropdown = document.querySelector('.language-dropdown');
+    if(langBtn) {
+        langBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); langDropdown.classList.toggle('active');
+        });
+    }
+    document.querySelectorAll('.language-option').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            const lang = opt.getAttribute('data-lang');
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.getAttribute('data-translate');
+                if(translations[lang][key]) el.innerText = translations[lang][key];
+            });
+            document.querySelectorAll('.language-option').forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            langDropdown.classList.remove('active');
+        });
+    });
+
+    // 3. User Menu
+    const userNav = document.getElementById('userProfileNav');
+    if(userNav) {
+        userNav.addEventListener('click', (e) => {
+            e.stopPropagation(); userNav.classList.toggle('active');
+        });
+    }
+
+    // 4. Mobile Menu
+    const menuToggle = document.getElementById('menuToggle');
+    const sideMenu = document.getElementById('sideMenu');
+    if(menuToggle && sideMenu) {
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation(); sideMenu.classList.toggle('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (!sideMenu.contains(e.target) && !menuToggle.contains(e.target) && sideMenu.classList.contains('active')) {
+                sideMenu.classList.remove('active');
+            }
+        });
+    }
+
+    // Close Dropdowns on Click Outside
+    document.addEventListener('click', () => {
+        if(langDropdown) langDropdown.classList.remove('active');
+        if(userNav) userNav.classList.remove('active');
+    });
+}
 
 // ======================================================
-// 4. MENU & NAVIGATION LOGIC
+// 4. NAVIGATION & GAME LOGIC (Keep Original)
 // ======================================================
-
 function switchMode(mode) {
-    // 1. Update Tabs UI
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(`'${mode}'`));
     if(btn) btn.classList.add('active');
 
-    // 2. Hide everything
     hideAllPanels();
     currentMode = mode;
 
-    // 3. Show specific content based on mode
-    if(mode === 'beginner') {
-        renderDashboard(); // Render Lessons
-        dashboard.style.display = 'flex';
+    if(mode === 'beginner') { 
+        renderDashboard(); 
+        // Dùng important để hiện lại Menu
+        dashboard.style.setProperty('display', 'flex', 'important'); 
     } 
-    else if (mode === 'code') {
-        renderCodeDashboard(); // Render Code
-        dashboard.style.display = 'flex';
+    else if (mode === 'code') { 
+        renderCodeDashboard(); 
+        dashboard.style.setProperty('display', 'flex', 'important'); 
     }
-    else if (mode === 'test') {
-        renderTestDashboard(); // Render Tests
-        dashboard.style.display = 'flex';
+    else if (mode === 'test') { 
+        renderTestDashboard(); 
+        dashboard.style.setProperty('display', 'flex', 'important'); 
     }
-    else if (mode === 'minigame') {
-        minigamePanel.style.display = 'block';
-    } 
-    else if (mode === 'custom') {
-        customPanel.style.display = 'block'; // Hiển thị panel Custom
-    }
+    else if (mode === 'minigame') { minigamePanel.style.display = 'block'; } 
+    else if (mode === 'custom') { customPanel.style.display = 'block'; }
 }
 
 function hideAllPanels() {
-    dashboard.style.display = 'none';
-    gameArea.style.display = 'none';
-    gameStats.style.display = 'none';
-    minigamePanel.style.display = 'none';
-    customPanel.style.display = 'none';
+    // SỬA LỖI 3: Dùng setProperty 'important' để bắt buộc ẩn Menu
+    if(dashboard) dashboard.style.setProperty('display', 'none', 'important');
     
-    // Ẩn cả cụm nút điều khiển
+    if(gameArea) gameArea.style.display = 'none';
+    if(gameStats) gameStats.style.display = 'none';
+    if(minigamePanel) minigamePanel.style.display = 'none';
+    if(customPanel) customPanel.style.display = 'none';
     if(navControls) navControls.style.display = 'none';
     
-    document.getElementById('resultOverlay').classList.remove('active');
+    // Ẩn overlay kết quả
+    const overlay = document.getElementById('resultOverlay');
+    if(overlay) overlay.classList.remove('active');
+    
+    closeModal();
 }
 
 function showLessonDashboard() { switchMode('beginner'); }
+function goToMenu() { switchMode(currentMode); }
 
-function goToMenu() { 
-    // Quay lại dashboard của mode hiện tại
-    switchMode(currentMode); 
+function openCustomModal() {
+    customModal.classList.add('active');
+    const txt = document.getElementById('customTextInput');
+    if(txt) { txt.value = ""; txt.focus(); }
 }
 
-
-// ======================================================
-// 5. RENDER FUNCTIONS (HIỂN THỊ DANH SÁCH BÀI)
-// ======================================================
-
-function renderDashboard() {
-    dashboard.innerHTML = "";
-    lessonData.forEach(section => createSectionElement(section, false));
+function applyCustomText() {
+    const txt = document.getElementById('customTextInput');
+    if (txt && txt.value.trim() !== "") {
+        pendingCustomText = txt.value.trim();
+        isCustomPending = true;
+        customModal.classList.remove('active');
+        openTimeModal(); 
+    }
 }
 
-function renderCodeDashboard() {
-    dashboard.innerHTML = "";
-    codeData.forEach(section => createSectionElement(section, true, 'code-card'));
+function openTimeModal(lessonObj = null) {
+    if(lessonObj) pendingLesson = lessonObj;
+    timeInput.value = ""; 
+    timeModal.classList.add('active');
+    setTimeout(() => timeInput.focus(), 100);
 }
 
-function renderTestDashboard() {
-    dashboard.innerHTML = "";
-    testData.forEach(section => createSectionElement(section, false, 'test-card'));
+function closeModal() {
+    timeModal.classList.remove('active');
+    customModal.classList.remove('active');
+    if (!timeModal.classList.contains('active')) {
+        pendingLesson = null; isCustomPending = false;
+    }
 }
+
+function confirmStartGame() {
+    let timeStr = timeInput.value.trim();
+    let seconds = 0; 
+    if (timeStr) {
+        if (timeStr.includes(':')) {
+            let parts = timeStr.split(':');
+            seconds = (parseInt(parts[0]) * 60) + (parseInt(parts[1]) || 0);
+        } else { seconds = parseInt(timeStr); }
+    }
+    if (isNaN(seconds)) seconds = 0;
+
+    if (isCustomPending) {
+        if(pendingCustomText) {
+            currentText = pendingCustomText; maxTime = seconds;
+            activeLessonId = null; currentLessonObj = null;
+            setupGameEnvironment();
+        }
+    } else if (pendingLesson) {
+        setupLessonContent(pendingLesson, seconds);
+    }
+    closeModal();
+}
+
+function startGenericLesson(lesson) {
+    if (lesson.type === 'timetest') { setupLessonContent(lesson, lesson.duration); } 
+    else { openTimeModal(lesson); }
+}
+
+function setupLessonContent(lesson, selectedTime) {
+    activeLessonId = lesson.id; currentLessonObj = lesson;
+    if (lesson.type === 'timetest') { currentText = generateRandomWords(100); maxTime = (selectedTime > 0) ? selectedTime : lesson.duration; } 
+    else if (lesson.type === 'pagetest') { currentText = lesson.text; maxTime = selectedTime; }
+    else if (lesson.type === 'code') {
+        const snippets = codeSnippets[lesson.lang];
+        currentText = snippets[Math.floor(Math.random() * snippets.length)];
+        maxTime = selectedTime; 
+    } else { currentText = lesson.text; maxTime = selectedTime; }
+    setupGameEnvironment();
+}
+
+function setupGameEnvironment() {
+    hideAllPanels();
+    gameArea.style.display = 'block'; gameStats.style.display = 'flex'; navControls.style.display = 'flex'; 
+    if (currentMode === 'beginner') navNewTextBtn.style.display = 'none';
+    else navNewTextBtn.style.display = 'flex';
+    renderGame();
+    setTimeout(() => { inputField.value = ""; inputField.focus(); }, 100);
+}
+
+function renderDashboard() { dashboard.innerHTML = ""; lessonData.forEach(s => createSectionElement(s)); }
+function renderCodeDashboard() { dashboard.innerHTML = ""; codeData.forEach(s => createSectionElement(s, true, 'code-card')); }
+function renderTestDashboard() { dashboard.innerHTML = ""; testData.forEach(s => createSectionElement(s, false, 'test-card')); }
 
 function createSectionElement(section, isCode = false, extraClass = '') {
     const secDiv = document.createElement('div');
@@ -237,137 +372,72 @@ function createSectionElement(section, isCode = false, extraClass = '') {
     secDiv.innerHTML = `<h2 class="section-title">${section.title}</h2>`;
     const gridDiv = document.createElement('div');
     gridDiv.className = 'section-grid';
-    
     section.lessons.forEach(lesson => {
         const stars = localStorage.getItem(getStorageKey(lesson.id)) || 0;
         const starHTML = Array(5).fill(0).map((_, i) => `<i class="${i < stars ? 'fas' : 'far'} fa-star"></i>`).join('');
         const iconStyle = lesson.color ? `style="color: ${lesson.color}"` : '';
-
         const card = document.createElement('div');
         card.className = `lesson-card ${extraClass}`;
         card.onclick = () => startGenericLesson(lesson);
-        card.innerHTML = `
-            <div class="card-header">
-                <i class="fab ${lesson.icon} lesson-icon" ${iconStyle}></i>
-                <div class="lesson-stars">${starHTML}</div>
-            </div>
-            <div class="lesson-info"><h3>${lesson.name}</h3><p>${lesson.keys}</p></div>
-        `;
+        card.innerHTML = `<div class="card-header"><i class="fab ${lesson.icon} lesson-icon" ${iconStyle}></i><div class="lesson-stars">${starHTML}</div></div><div class="lesson-info"><h3>${lesson.name}</h3><p>${lesson.keys}</p></div>`;
         gridDiv.appendChild(card);
     });
     secDiv.appendChild(gridDiv);
     dashboard.appendChild(secDiv);
 }
 
-
-// ======================================================
-// 6. GAME START LOGIC
-// ======================================================
-
-function startGenericLesson(lesson) {
-    activeLessonId = lesson.id;
-    currentLessonObj = lesson; // Lưu lại để dùng cho New Text
-    
-    // Logic xác định text và thời gian
-    if (lesson.type === 'timetest') {
-        currentText = generateRandomWords(100); 
-        maxTime = lesson.duration;
-    } 
-    else if (lesson.type === 'pagetest') {
-        currentText = lesson.text;
-        maxTime = 0; // Count up
-    }
-    else if (lesson.type === 'code') {
-        const snippets = codeSnippets[lesson.lang];
-        currentText = snippets[Math.floor(Math.random() * snippets.length)];
-        maxTime = 0; // Count up
-    }
-    else {
-        // Beginner Lessons
-        currentText = lesson.text;
-        maxTime = 60; 
-    }
-
-    setupGameEnvironment();
-}
-
-function setupGameEnvironment() {
-    hideAllPanels();
-    gameArea.style.display = 'block';
-    gameStats.style.display = 'flex'; 
-    
-    // Hiện cụm nút điều khiển (bao gồm Back và Restart)
-    if(navControls) navControls.style.display = 'flex';
-    
-    renderGame();
-    setTimeout(() => { inputField.value = ""; inputField.focus(); }, 100);
-}
-
-// Hàm sinh từ ngẫu nhiên
 function generateRandomWords(count) {
     let res = [];
-    for(let i=0; i<count; i++) {
-        res.push(randomWords[Math.floor(Math.random() * randomWords.length)]);
-    }
+    for(let i=0; i<count; i++) res.push(randomWords[Math.floor(Math.random() * randomWords.length)]);
     return res.join(" ");
 }
 
-
-// ======================================================
-// 7. RESTART & NEW TEXT LOGIC
-// ======================================================
-
-// Restart: Chơi lại đúng đoạn text vừa rồi
-function restartCurrent() {
-    // Ẩn overlay kết quả nếu nó đang hiện
-    document.getElementById('resultOverlay').classList.remove('active');
-    setupGameEnvironment();
-}
-
-// New Text: Random bài mới hoặc mở lại modal
+function restartCurrent() { document.getElementById('resultOverlay').classList.remove('active'); setupGameEnvironment(); }
 function loadNewText() {
-    if (currentMode === 'custom') {
-        openCustomModal();
-    } else if (currentLessonObj) {
-        startGenericLesson(currentLessonObj); // Gọi lại sẽ random ra text mới (với Code/TimeTest)
+    document.getElementById('resultOverlay').classList.remove('active');
+    if (currentMode === 'custom') { openCustomModal(); } 
+    else if (currentLessonObj) { startGenericLesson(currentLessonObj); } 
+    else { goToMenu(); }
+}
+function nextAction() {
+    // 1. Tìm bài học hiện tại trong danh sách dữ liệu
+    let allLessons = [];
+    
+    // Gom tất cả bài học từ các mục (Beginner, Intermediate...) vào 1 mảng
+    if(currentMode === 'beginner') {
+        lessonData.forEach(section => allLessons = allLessons.concat(section.lessons));
+    } else if (currentMode === 'code') {
+        codeData.forEach(section => allLessons = allLessons.concat(section.lessons));
+    }
+
+    // 2. Tìm vị trí (index) của bài đang học
+    const currentIndex = allLessons.findIndex(l => l.id === activeLessonId);
+
+    // 3. Nếu tìm thấy và chưa phải bài cuối cùng -> Chuyển bài
+    if (currentIndex !== -1 && currentIndex < allLessons.length - 1) {
+        const nextLesson = allLessons[currentIndex + 1];
+        startGenericLesson(nextLesson);
+        
+        // Ẩn bảng kết quả đi
+        document.getElementById('resultOverlay').classList.remove('active');
     } else {
+        // Nếu là bài cuối hoặc không tìm thấy -> Về Menu
         goToMenu();
     }
 }
 
-
-// ======================================================
-// 8. TYPING ENGINE (CORE)
-// ======================================================
-
 function renderGame() {
     display.innerHTML = "";
-    // Xử lý hiển thị
     currentText.split("").forEach(char => {
         let span = document.createElement('span');
-        span.innerText = char;
-        display.appendChild(span);
+        span.innerText = char; display.appendChild(span);
     });
-    
-    inputField.value = "";
-    charIndex = 0;
-    mistakes = 0;
-    isTyping = false;
-    
+    inputField.value = ""; charIndex = 0; mistakes = 0; isTyping = false;
     if(wpmTag) wpmTag.innerText = 0;
     if(accTag) accTag.innerText = "100%";
-    
-    if (maxTime === 0) {
-        timeLeft = 0; 
-        updateTimeDisplay(0);
-    } else {
-        timeLeft = maxTime; 
-        updateTimeDisplay(timeLeft);
-    }
-    
+    if (maxTime === 0) { timeLeft = 0; updateTimeDisplay(0); } 
+    else { timeLeft = maxTime; updateTimeDisplay(timeLeft); }
     clearInterval(timer);
-    document.getElementById('resultOverlay').classList.remove('active');
-    
     const chars = display.querySelectorAll("span");
     if(chars.length > 0) chars[0].classList.add("active");
 }
@@ -378,12 +448,8 @@ function initTyping() {
     let canType = (maxTime === 0) ? true : (timeLeft > 0);
 
     if(charIndex < chars.length && canType) {
-        if(!isTyping) {
-            timer = setInterval(initTimer, 1000);
-            isTyping = true;
-        }
-
-        if(typedChar == null) { // Handle Backspace
+        if(!isTyping) { timer = setInterval(initTimer, 1000); isTyping = true; }
+        if(typedChar == null) { 
             if(charIndex > 0) {
                 charIndex--;
                 if(chars[charIndex].classList.contains("incorrect")) mistakes--;
@@ -391,157 +457,97 @@ function initTyping() {
             }
         } else {
             flashPressedKey(typedChar); 
-            
-            // Check correct char
-            if(chars[charIndex].innerText === typedChar) {
-                chars[charIndex].classList.add("correct");
-            } else {
-                mistakes++;
-                chars[charIndex].classList.add("incorrect");
-            }
+            if(chars[charIndex].innerText === typedChar) chars[charIndex].classList.add("correct");
+            else { mistakes++; chars[charIndex].classList.add("incorrect"); }
             charIndex++;
         }
-
-        // Move cursor & Active class
         chars.forEach(span => span.classList.remove("active"));
         if(charIndex < chars.length) {
             chars[charIndex].classList.add("active");
-            
-            // Auto scroll logic
             let activeEl = chars[charIndex];
-            if(activeEl.offsetTop > display.clientHeight - 50) {
-                 display.scrollTop = activeEl.offsetTop - 50;
-            }
-        } else {
-            finishGame();
-        }
-
+            if(activeEl.offsetTop > display.clientHeight - 50) display.scrollTop = activeEl.offsetTop - 50;
+        } else finishGame();
         updateStats();
-
-    } else if (charIndex >= chars.length) {
-        finishGame();
-    }
+    } else if (charIndex >= chars.length) finishGame();
 }
 
 function updateStats() {
-    let timePassed;
-    if (maxTime === 0) timePassed = timeLeft;
-    else timePassed = maxTime - timeLeft;
-    
+    let timePassed = (maxTime === 0) ? timeLeft : maxTime - timeLeft;
     if(timePassed <= 0) timePassed = 1;
-    
     let wpm = Math.round(((charIndex - mistakes) / 5) / (timePassed / 60));
     wpm = (!wpm || wpm < 0) ? 0 : wpm;
     if(wpmTag) wpmTag.innerText = wpm;
-    
-    let acc;
-    if (charIndex === 0) acc = 100;
-    else {
-        acc = Math.round(((charIndex - mistakes) / charIndex) * 100);
-        if(acc < 0) acc = 0; 
-    }
+    let acc = (charIndex === 0) ? 100 : Math.round(((charIndex - mistakes) / charIndex) * 100);
+    if(acc < 0) acc = 0; 
     if(accTag) accTag.innerText = acc + "%";
 }
 
 function initTimer() {
-    if (maxTime === 0) {
-        timeLeft++; // Count up
-        updateTimeDisplay(timeLeft);
-    } else {
-        if(timeLeft > 0) {
-            timeLeft--; // Count down
-            updateTimeDisplay(timeLeft);
-        } else {
-            finishGame();
-        }
+    if (maxTime === 0) { timeLeft++; updateTimeDisplay(timeLeft); } 
+    else {
+        if(timeLeft > 0) { timeLeft--; updateTimeDisplay(timeLeft); } 
+        else finishGame();
     }
 }
 
 function updateTimeDisplay(s) {
-    let m = Math.floor(s / 60);
-    let sec = s % 60;
+    let m = Math.floor(s / 60); let sec = s % 60;
     const formatted = `${m}:${sec < 10 ? '0' : ''}${sec}`;
     if(timeTag) timeTag.innerText = formatted;
 }
 
-
-// ======================================================
-// 9. FINISH GAME & RESULTS
-// ======================================================
-
 function finishGame() {
-    clearInterval(timer);
-    inputField.value = "";
-    
+    clearInterval(timer); inputField.value = "";
     const finalWpm = wpmTag ? wpmTag.innerText : 0;
     const finalAcc = accTag ? accTag.innerText : "100%";
-
     document.getElementById('finalWpm').innerText = finalWpm;
     document.getElementById('finalAcc').innerText = finalAcc;
     document.getElementById('resultOverlay').classList.add('active');
     
-    // Lưu điểm... (giữ nguyên logic lưu điểm)
     if(activeLessonId && currentMode !== 'custom') {
         const acc = parseInt(finalAcc);
-        let stars = Math.floor(acc / 20); 
-        if(stars > 5) stars = 5;
-        const storageKey = getStorageKey(activeLessonId);
-        const oldStars = localStorage.getItem(storageKey) || 0;
-        if(stars > oldStars) {
-            localStorage.setItem(storageKey, stars);
-        }
+        let stars = Math.floor(acc / 20); if(stars > 5) stars = 5;
+        const key = getStorageKey(activeLessonId);
+        if(stars > (localStorage.getItem(key) || 0)) localStorage.setItem(key, stars);
     }
-
-    // BUTTON VISIBILITY LOGIC
-    // Chỉ cần xử lý nút Next/New Text vì nút Restart giờ đã nằm bên ngoài Overlay
-    if (currentMode === 'beginner') {
-        if(btnNext) btnNext.style.display = 'flex';
-        if(btnNewText) btnNewText.style.display = 'none';
-    } 
-    else {
-        if(btnNext) btnNext.style.display = 'none';
-        if(btnNewText) btnNewText.style.display = 'flex'; 
-    }
+    
+    if (currentMode === 'beginner') { btnNext.style.display = 'flex'; btnNewText.style.display = 'none'; } 
+    else { btnNext.style.display = 'none'; btnNewText.style.display = 'flex'; }
 }
-
-function nextAction() {
-    goToMenu(); // Beginner mode: Quay về menu chọn bài tiếp
-}
-
-// ======================================================
-// 10. VISUAL AIDS & CUSTOM TEXT
-// ======================================================
 
 function flashPressedKey(char) {
-    document.querySelectorAll('.key.highlight, .key.shift-highlight').forEach(k => {
-        k.classList.remove('highlight', 'shift-highlight');
-    });
+    document.querySelectorAll('.key.highlight').forEach(k => k.classList.remove('highlight'));
     if(!char) return;
-    let keyToPress = char.toLowerCase();
-    if(char === " ") keyToPress = " ";
+    let k = char.toLowerCase(); if(char === " ") k = " ";
+    const el = document.querySelector(`.key[data-key="${k}"]`);
+    if(el) { el.classList.add('highlight'); setTimeout(() => el.classList.remove('highlight'), 150); }
+}
+/* Thêm vào cuối file typing.js */
+function setPresetTime(timeStr) {
+    const input = document.getElementById('timeInput');
+    const btns = document.querySelectorAll('.quick-btn');
     
-    const keyEl = document.querySelector(`.key[data-key="${keyToPress}"]`);
-    if(keyEl) {
-        keyEl.classList.add('highlight');
-        setTimeout(() => { keyEl.classList.remove('highlight'); }, 150);
+    if(input) {
+        input.value = timeStr;
+        // Hiệu ứng blink để báo hiệu đã nhận
+        input.style.borderColor = '#4ade80';
+        setTimeout(() => input.style.borderColor = '', 300);
+        input.focus();
     }
-}
 
-// Custom Text Modal Logic
-function openCustomModal() {
-    document.getElementById('customModal').classList.add('active');
-}
-function closeModal() {
-    document.getElementById('customModal').classList.remove('active');
-}
-function applyCustomText() {
-    const text = document.getElementById('customTextInput').value.trim();
-    if(text) { 
-        currentText = text; 
-        maxTime = 0; // Custom: Count up
-        activeLessonId = null; 
-        currentLessonObj = null;
-        closeModal();
-        setupGameEnvironment();
+    // Cập nhật trạng thái nút active
+    btns.forEach(btn => {
+        btn.classList.remove('active');
+        if(btn.innerText.toLowerCase().includes(timeStr) || 
+          (timeStr === '' && btn.innerText === '∞') ||
+          (btn.innerText.replace('s','') === timeStr.split(':')[1])) {
+             btn.classList.add('active');
+        }
+    });
+    
+    // Highlight nút vừa bấm
+    if(event && event.target) {
+        btns.forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
     }
 }
