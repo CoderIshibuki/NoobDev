@@ -1,0 +1,342 @@
+/* --- LƯU TẠI: assets/css/pages/blinkgame.css --- */
+
+/* 1. LAYOUT & BACKGROUND */
+.game-wrapper {
+    position: relative; z-index: 10;
+    width: 95%; max-width: 1400px;
+    margin: 40px auto;
+    display: flex; flex-direction: row; align-items: flex-start;
+    gap: 60px; min-height: 85vh;
+}
+
+.game-main-container {
+    flex: 3; width: 100%; display: flex; justify-content: center;
+}
+
+/* Hiệu ứng khung kính hiện đại hơn */
+.game-card {
+    position: relative; width: 100%;
+    background: rgba(13, 25, 48, 0.85); /* Nền tối hơn */
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 30px; padding: 50px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), 
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05); /* Viền sáng mờ bên trong */
+    text-align: center; color: white;
+    animation: zoomInCard 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    overflow: hidden;
+}
+
+/* 2. GAME AREA (Sân chơi) */
+.game-area {
+    position: relative; height: 500px;
+    background: radial-gradient(circle at center, rgba(30, 58, 138, 0.3) 0%, rgba(10, 20, 40, 0.6) 100%);
+    border: 2px solid rgba(56, 189, 248, 0.3); /* Viền xanh cyan nhạt */
+    border-radius: 24px; margin: 30px 0;
+    overflow: hidden;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.6);
+}
+
+/* Từ khóa xuất hiện */
+.word-container {
+    position: absolute;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 4.5rem; font-weight: 900;
+    color: rgba(255, 255, 255, 0.9);
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    transition: all 0.1s;
+    letter-spacing: -1px;
+}
+
+/* Hiệu ứng chữ khi gõ đúng */
+.word-container span { transition: color 0.1s, text-shadow 0.1s; }
+.word-container span.typed {
+    color: #4ade80; /* Màu xanh neon */
+    text-shadow: 0 0 20px rgba(74, 222, 128, 0.8), 0 0 40px rgba(74, 222, 128, 0.4);
+}
+
+/* 3. LEADERBOARD (Bảng xếp hạng) */
+.leaderboard-sidebar {
+    flex: 1; min-width: 350px;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.6) 100%);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px; padding: 30px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    height: fit-content;
+}
+
+.lb-header {
+    font-size: 1.6rem; font-weight: 900; color: #facc15;
+    margin-bottom: 25px; padding-bottom: 20px;
+    border-bottom: 2px solid rgba(255,255,255,0.05);
+    text-align: center; text-transform: uppercase; letter-spacing: 2px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    text-shadow: 0 0 15px rgba(250, 204, 21, 0.3);
+}
+
+.lb-list { display: flex; flex-direction: column; gap: 15px; }
+
+.lb-item {
+    display: flex; align-items: center; gap: 15px; padding: 15px;
+    background: rgba(255,255,255,0.03); border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.05); transition: 0.3s;
+    position: relative; overflow: hidden;
+}
+.lb-item:hover { transform: translateX(5px); background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+
+/* Rank Badges */
+.lb-rank { 
+    font-weight: 900; font-size: 1.1rem; width: 30px; text-align: center; color: #64748b; 
+    z-index: 2;
+}
+.lb-avatar {
+    width: 42px; height: 42px; background: #334155;
+    border-radius: 12px; /* Avatar vuông bo góc */
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 18px; color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 2;
+}
+.lb-info { flex: 1; text-align: left; z-index: 2; }
+.lb-name { font-weight: 700; font-size: 1rem; color: #f1f5f9; margin-bottom: 2px;}
+.lb-score { font-size: 0.9rem; color: #4ade80; font-family: 'Roboto Mono', monospace; letter-spacing: 1px; }
+
+/* Top 3 Styling Special */
+.lb-item.rank-1 { background: linear-gradient(90deg, rgba(234, 179, 8, 0.1), transparent); border: 1px solid rgba(234, 179, 8, 0.3); }
+.lb-item.rank-1 .lb-rank { color: #facc15; text-shadow: 0 0 10px #facc15; }
+.lb-item.rank-1 .lb-avatar { background: linear-gradient(135deg, #facc15, #b45309); box-shadow: 0 0 15px rgba(250, 204, 21, 0.4); }
+
+.lb-item.rank-2 { border-left: 4px solid #cbd5e1; }
+.lb-item.rank-3 { border-left: 4px solid #d97706; }
+
+/* Current User Highlighting */
+.lb-item.current-user {
+    margin-top: 10px;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid #38bdf8;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+}
+
+/* 4. GAME HEADER & HUD */
+.game-header { 
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(0,0,0,0.3); padding: 20px 30px; 
+    border-radius: 20px; margin-bottom: 30px; 
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.stats-left { font-size: 1.5rem; display: flex; gap: 40px; font-weight: 800; color: #e2e8f0; }
+.lives { display: flex; gap: 8px; } 
+.lives i { font-size: 2rem; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); } 
+.heart-filled { 
+    color: #ef4444; 
+    filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.8));
+    animation: heartbeat 1.5s infinite; 
+} 
+.heart-empty { color: #334155; transform: scale(0.8); }
+
+/* 5. MENU SCREEN & BUTTONS */
+.game-title { 
+    font-size: 4.5rem; font-weight: 900;
+    background: linear-gradient(to bottom, #ffffff 30%, #38bdf8 100%); 
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+    margin-bottom: 10px; 
+    filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.5));
+    letter-spacing: -2px;
+}
+.game-desc { font-size: 1.2rem; color: #94a3b8; margin-bottom: 50px; }
+
+.levels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 40px; }
+.level-btn {
+    background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.05);
+    border-radius: 24px; padding: 40px 20px; cursor: pointer; color: white; 
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative; overflow: hidden;
+}
+.level-btn:hover { transform: translateY(-10px); }
+.level-btn h3 { font-size: 1.8rem; margin: 15px 0 5px; font-weight: 800; }
+.level-btn p { font-size: 1rem; opacity: 0.7; }
+.level-btn .icon { font-size: 3rem; filter: grayscale(1); transition: 0.3s; }
+
+/* Level Colors */
+.level-btn:hover .icon { filter: grayscale(0); transform: scale(1.2); }
+.level-btn.green:hover { border-color: #4ade80; background: rgba(74, 222, 128, 0.05); box-shadow: 0 10px 40px rgba(74, 222, 128, 0.2); }
+.level-btn.yellow:hover { border-color: #facc15; background: rgba(250, 204, 21, 0.05); box-shadow: 0 10px 40px rgba(250, 204, 21, 0.2); }
+.level-btn.red:hover { border-color: #f87171; background: rgba(248, 113, 113, 0.05); box-shadow: 0 10px 40px rgba(248, 113, 113, 0.2); }
+
+/* 6. GAME OVER & FEEDBACK */
+.game-over-title { 
+    font-size: 5rem; font-weight: 900; color: #fff; margin-bottom: 20px; 
+    text-shadow: 0 0 40px rgba(239, 68, 68, 0.8);
+    background: linear-gradient(to bottom, #fff, #fca5a5);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.highlight-score { font-size: 5rem; font-weight: 900; color: #4ade80; text-shadow: 0 0 30px rgba(74, 222, 128, 0.4); }
+
+.feedback {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 4rem; font-weight: 900; z-index: 20; 
+    text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    pointer-events: none;
+}
+.feedback.success { color: #4ade80; animation: popInSuccess 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; } 
+.feedback.timeout { color: #f87171; animation: shakeError 0.4s ease-in-out; }
+
+/* Buttons */
+.cta-button { 
+    padding: 18px 60px; font-size: 1.3rem; border-radius: 50px; 
+    border:none; cursor:pointer; font-weight:800; text-transform: uppercase; letter-spacing: 1px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; 
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+    transition: 0.3s;
+}
+.cta-button:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 20px 50px rgba(59, 130, 246, 0.6); }
+.quit-btn { margin-top: 15px; background: transparent; border: 2px solid rgba(255,255,255,0.2); color: #94a3b8; font-weight: 700; padding: 12px 30px; border-radius: 30px; cursor: pointer; transition: 0.3s; }
+.quit-btn:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+/* Animations */
+@keyframes zoomInCard { from {opacity:0; transform: scale(0.9);} to {opacity:1; transform: scale(1);} }
+@keyframes popInSuccess { 0% {transform:translate(-50%,-50%) scale(0.5); opacity:0;} 60% {transform:translate(-50%,-50%) scale(1.3); opacity:1;} 100% {transform:translate(-50%,-50%) scale(1); opacity:0;}}
+@keyframes shakeError { 0%, 100% {transform:translate(-50%,-50%) translateX(0);} 25% {transform:translate(-50%,-50%) translateX(-15px);} 75% {transform:translate(-50%,-50%) translateX(15px);} }
+@keyframes heartbeat { 0%, 100% {transform: scale(1);} 50% {transform: scale(1.2);} }
+
+/* 7. UTILS */
+.hidden { display: none !important; }
+.exit-btn {
+    position: absolute; top: 30px; right: 30px;
+    width: 50px; height: 50px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); color: #94a3b8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; text-decoration: none; border: 1px solid rgba(255,255,255,0.1);
+    transition: 0.3s; z-index: 5;
+}
+.exit-btn:hover { background: rgba(239,68,68,0.2); color: #ef4444; border-color: #ef4444; transform: rotate(90deg); }
+
+@media (max-width: 1200px) {
+    .game-wrapper { flex-direction: column; align-items: center; gap: 50px; }
+    .leaderboard-sidebar { width: 100%; order: 2; }
+    .game-main-container { order: 1; }
+}
+/* --- TÌM VÀ THAY THẾ/CẬP NHẬT CÁC CLASS SAU --- */
+
+/* Xóa style cũ của .game-header nếu còn */
+.game-header { display: none; } 
+
+/* HUD Overlay: Lớp phủ chứa thông số nằm đè lên Game Area */
+.hud-overlay {
+    position: absolute;
+    top: 25px;
+    left: 30px;
+    right: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 50;
+    pointer-events: none; /* Để chuột bấm xuyên qua được */
+}
+
+/* Các nhóm chỉ số (Score, Lives, Streak) */
+.hud-item {
+    background: rgba(15, 23, 42, 0.6); /* Nền tối mờ */
+    backdrop-filter: blur(10px);
+    padding: 10px 25px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+}
+
+/* 1. SCORE (Góc Trái) */
+.score-container {
+    color: white;
+}
+.score-label {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-right: 5px;
+}
+#scoreDisplay {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    font-family: 'Roboto Mono', monospace;
+}
+
+/* 2. LIVES (Góc Phải) */
+.lives-container {
+    padding: 10px 20px;
+}
+.lives i {
+    font-size: 1.5rem;
+    margin: 0 2px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.heart-filled { 
+    color: #ef4444; 
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+    animation: heartbeat 2s infinite;
+}
+.heart-empty { 
+    color: rgba(255, 255, 255, 0.1); 
+    transform: scale(0.8);
+}
+
+/* 3. STREAK (Ở giữa - Chỉ hiện khi có combo) */
+.streak-container {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(250, 204, 21, 0.2), rgba(234, 179, 8, 0.1));
+    border-color: rgba(250, 204, 21, 0.4);
+    color: #facc15;
+    font-weight: 800;
+    font-size: 1.2rem;
+    opacity: 0; /* Mặc định ẩn */
+    transition: all 0.3s;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+/* Class để hiện Streak (JS sẽ thêm class này) */
+.streak-container.active {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    animation: pulseStreak 0.5s infinite alternate;
+}
+
+@keyframes pulseStreak {
+    from { box-shadow: 0 0 10px rgba(250, 204, 21, 0.2); }
+    to { box-shadow: 0 0 25px rgba(250, 204, 21, 0.6); }
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    15% { transform: scale(1.15); }
+    30% { transform: scale(1); }
+}
+/* --- Thay thế phần .word-container cũ bằng đoạn này --- */
+
+.word-container {
+    position: absolute; 
+    /* GIẢM CỠ CHỮ XUỐNG CÒN 3rem (Khoảng 48px) */
+    font-size: 3rem; 
+    font-weight: 800; color: white;
+    /* Dùng top/left tính toán trong JS, không dùng translate center nữa để dễ tính biên */
+    white-space: nowrap;
+    text-shadow: 0 0 15px rgba(255,255,255,0.4);
+    font-family: 'Roboto Mono', monospace;
+    z-index: 100;
+    
+    /* Thêm padding để chữ không bị sát viền quá */
+    padding: 10px;
+    pointer-events: none; /* Để chuột không lỡ bấm vào */
+}
+
+/* Các phần khác giữ nguyên... */

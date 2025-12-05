@@ -196,15 +196,54 @@ if (!$avatar_file) {
                 </div>
             </div>
 
-            <div id="minigamePanel" style="display: none; text-align: center; padding: 50px;">
-                <h2 style="color: #fff; margin-bottom: 20px;">Minigames</h2>
-                <div class="section-grid" style="justify-content: center;">
-                    <div class="lesson-card" style="opacity: 0.7; cursor: default; max-width: 300px;">
-                        <div class="card-header"><i class="fas fa-gamepad lesson-icon" style="color: #ff6b6b;"></i></div>
-                        <div class="lesson-info"><h3>Type Racer</h3><p>Coming Soon</p></div>
+            <div id="minigamePanel" style="display: none; width: 100%;">
+    <div class="lesson-dashboard" style="display: flex !important; flex-direction: column !important;">
+        
+        <div class="lesson-section">
+            <h2 class="section-title" style="border-left-color: #facc15;">Arcade Zone</h2>
+            
+            <div class="section-grid">
+                
+                <a href="blinkgame.php" class="lesson-card" style="text-decoration: none; color: inherit;">
+                    <div class="card-header">
+                        <i class="fas fa-bolt lesson-icon" style="color: #facc15; font-size: 2rem; margin-bottom: 10px;"></i>
+                        <div class="lesson-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <div class="lesson-info">
+                        <h3>Blink Game</h3>
+                        <p>Speed & Reflexes</p>
+                    </div>
+                </a>
+
+                <a href="fallingblocks.php" class="lesson-card" style="text-decoration: none; color: inherit;">
+                    <div class="card-header">
+                        <i class="fas fa-cubes lesson-icon" style="color: #4ade80; font-size: 2rem; margin-bottom: 10px;"></i>
+                        <div class="lesson-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        </div>
+                    </div>
+                    <div class="lesson-info">
+                        <h3>Falling Blocks</h3>
+                        <p>Survival Typing</p>
+                    </div>
+                </a>
+
+                <div class="lesson-card" style="opacity: 0.5; cursor: not-allowed;">
+                    <div class="card-header">
+                        <i class="fas fa-flag-checkered lesson-icon" style="color: #f87171; font-size: 2rem; margin-bottom: 10px;"></i>
+                    </div>
+                    <div class="lesson-info">
+                        <h3>Type Racer</h3>
+                        <p>Coming Soon</p>
                     </div>
                 </div>
+
             </div>
+        </div>
+    </div>
+</div>
 
             <div id="customPanel" style="display: none;">
                  <div class="section-title" style="text-align: center; border: none; color: #38bdf8;">Custom Practice</div>
