@@ -53,8 +53,7 @@ window.stopGame = function() {
     document.getElementById('playingScreen').classList.add('hidden');
     document.getElementById('menuScreen').classList.remove('hidden');
     
-    // Refresh BXH khi về menu để thấy điểm mới
-    updateLeaderboardUI();
+    location.reload(); // Reload để cập nhật Best Score mới
 };
 
 window.returnToMenu = function() {
@@ -150,34 +149,16 @@ function endGame() {
     clearInterval(spawnInterval);
     window.removeEventListener('keydown', handleInput);
     
-    // Xóa khối
     activeBlocks.forEach(b => b.element.remove());
     
     document.getElementById('playingScreen').classList.add('hidden');
     document.getElementById('gameOverScreen').classList.remove('hidden');
     document.getElementById('finalScore').innerText = score;
     
-    // GỬI ĐIỂM
     const fd = new FormData();
-    fd.append('game_type', 'falling'); 
-    fd.append('score', score);
-    
-    fetch('php/save_score.php', {method:'POST', body:fd})
-    .then(res => res.json())
-    .then(data => {
-        if(data.status === 'success') {
-            updateLeaderboardUI();
-        }
-    });
-}
-
-function updateLeaderboardUI() {
-    fetch('php/get_leaderboard.php?game=falling&t=' + new Date().getTime())
-    .then(r => r.text())
-    .then(html => {
-        const list = document.querySelector('.lb-list');
-        if(list) list.innerHTML = html;
-    });
+    fd.append('game_type', 'falling'); fd.append('score', score);
+    fetch('php/save_score.php', {method:'POST', body:fd});
+    // Không gọi updateLeaderboardUI()
 }
 
 function updateHUD() {

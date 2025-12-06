@@ -33,23 +33,16 @@ window.startGame = function(lvl) {
 window.returnToMenu = function() {
     if(timerRef) clearTimeout(timerRef);
     
-    // Ẩn màn hình chơi/kết thúc
     document.getElementById('playingScreen').classList.add('hidden');
     document.getElementById('gameOverScreen').classList.add('hidden');
-    
-    // Hiện màn hình menu
     document.getElementById('levelScreen').classList.remove('hidden');
     
-    // Cập nhật lại số điểm "Your Best" ở Menu ngay lập tức (nếu có element đó)
-    // Bạn cần thêm id="menuBestScore" vào thẻ hiển thị điểm ở file PHP bước 4 bên dưới
-    const menuScoreEl = document.getElementById('menuBestScore');
-    if(menuScoreEl) {
-        // Lấy số hiện tại, so sánh với score vừa chơi
-        let currentBest = parseInt(menuScoreEl.getAttribute('data-score') || '0');
-        if(score > currentBest) {
-            menuScoreEl.innerText = score + " pts";
-            menuScoreEl.setAttribute('data-score', score);
-        }
+    // Cập nhật lại điểm Best Score ở Menu (nếu vừa đạt kỷ lục mới)
+    const menuScore = document.querySelector('#levelScreen .fa-crown').parentNode;
+    if(menuScore) {
+        // Logic đơn giản: Reload trang để PHP lấy điểm mới nhất từ DB
+        // Hoặc update text thủ công nếu muốn mượt hơn
+        location.reload(); 
     }
 };
 
@@ -150,10 +143,8 @@ function endGame() {
     document.getElementById('playingScreen').classList.add('hidden');
     document.getElementById('gameOverScreen').classList.remove('hidden');
     
-    // CẬP NHẬT ĐIỂM NGAY (Fix lỗi hiện 0)
     document.getElementById('finalScore').innerText = score;
     
-    // Gửi điểm
     const fd = new FormData();
     fd.append('game_type', 'blink'); 
     fd.append('score', score);
@@ -161,19 +152,8 @@ function endGame() {
     fetch('php/save_score.php', {method:'POST', body:fd})
     .then(response => response.json())
     .then(data => {
-        if(data.status === 'success') {
-            console.log("Saved!");
-            updateLeaderboardUI();
-        }
-    });
-}
-
-function updateLeaderboardUI() {
-    fetch('php/get_leaderboard.php?game=blink&t=' + new Date().getTime())
-    .then(r => r.text())
-    .then(html => {
-        const list = document.querySelector('.lb-list');
-        if(list) list.innerHTML = html;
+        console.log("Score Saved:", data);
+        // Không cần gọi updateLeaderboardUI() nữa vì đã xóa bảng đó
     });
 }
 

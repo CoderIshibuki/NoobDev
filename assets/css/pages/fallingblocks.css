@@ -1,18 +1,25 @@
 /* --- LƯU TẠI: assets/css/pages/fallingblocks.css --- */
 
-/* 1. LAYOUT CHÍNH */
+/* 1. LAYOUT CHÍNH (Căn giữa) */
 .game-wrapper {
     position: relative; z-index: 10;
     width: 95%; max-width: 1400px;
     margin: 40px auto;
-    display: flex; flex-direction: row; align-items: flex-start;
-    gap: 60px; min-height: 85vh;
+    display: flex; 
+    justify-content: center; /* Căn giữa */
+    align-items: center;
+    min-height: 85vh;
 }
 
-.game-main-container { flex: 3; width: 100%; display: flex; justify-content: center; }
+.game-main-container { 
+    flex: 0 1 900px; /* Giới hạn width */
+    width: 100%; 
+    display: flex; justify-content: center; 
+    position: relative; z-index: 20; 
+}
 
-/* 2. MENU SCREEN (Giữ khung kính đẹp) */
-#menuScreen.game-card {
+/* 2. GAME CARD (Khung Menu & Game Over) */
+.game-card {
     position: relative; width: 100%;
     background: rgba(13, 25, 48, 0.85);
     backdrop-filter: blur(20px);
@@ -20,193 +27,71 @@
     border-radius: 30px; padding: 50px;
     box-shadow: 0 0 60px rgba(0,0,0,0.6);
     text-align: center; color: white;
-    z-index: 20;
+    animation: zoomIn 0.5s ease-out;
+    overflow: hidden; z-index: 25;
 }
 
-/* 3. PLAYING SCREEN (QUAN TRỌNG: TRÀN VIỀN) */
-/* Xóa bỏ nền và padding khi đang chơi để game rộng ra */
+/* Fullscreen Game Mode */
 #playingScreen.game-card {
     background: transparent !important;
-    box-shadow: none !important;
     border: none !important;
+    box-shadow: none !important;
     padding: 0 !important;
     backdrop-filter: none !important;
-    width: 100%;
+    overflow: visible !important;
 }
 
-/* KHUNG VỰC CHƠI GAME */
-.game-area {
-    position: relative; 
-    height: 650px; /* Chiều cao cố định */
-    width: 100%;
-    background: radial-gradient(circle at bottom, rgba(30, 58, 138, 0.25) 0%, rgba(10, 20, 40, 0.9) 100%);
-    border: 2px solid rgba(59, 130, 246, 0.3);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 0 100px rgba(0,0,0,0.5);
-}
-
-/* 4. HUD (ĐIỂM & MÁU) - NẰM ĐÈ LÊN GAME */
-.hud-overlay {
-    position: absolute; top: 25px; left: 30px; right: 30px;
-    display: flex; justify-content: space-between; align-items: center;
-    z-index: 50; 
-    pointer-events: none; /* QUAN TRỌNG: Để click xuyên qua HUD */
-}
-
-.hud-item {
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(10px);
-    padding: 10px 25px;
-    border-radius: 50px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    display: flex; align-items: center; gap: 15px;
-    color: white; font-weight: bold;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    pointer-events: auto;
-}
-
-/* Icon & Text */
-.score-container i { color: #facc15; font-size: 1.4rem; }
-#scoreDisplay { font-size: 1.8rem; font-family: 'Roboto Mono', monospace; line-height: 1; }
-
-.lives-container i { font-size: 1.6rem; margin: 0 3px; }
-.heart-filled { color: #ef4444; filter: drop-shadow(0 0 5px red); }
-.heart-empty { color: rgba(255,255,255,0.15); }
-
-/* 5. CÁC KHỐI GẠCH (BLOCKS) */
-.block {
-    position: absolute; top: -80px; 
-    padding: 12px 24px;
-    background: rgba(15, 23, 42, 0.95);
-    border: 2px solid #3b82f6; border-radius: 12px;
-    color: #e0f2fe; font-weight: 800; font-size: 1.5rem; 
-    font-family: 'Roboto Mono', monospace; white-space: nowrap;
-    box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
-    will-change: transform, top; 
-    animation: fall linear forwards;
-    z-index: 10;
-}
-.block.active-target { 
-    border-color: #facc15; 
-    box-shadow: 0 0 40px rgba(250, 204, 21, 0.6); 
-    transform: scale(1.1); z-index: 15;
-}
-.block span.typed { color: #4ade80; text-shadow: 0 0 15px #4ade80; }
-
-@keyframes fall { from {top: -80px;} to {top: 110%;} }
-
-/* Tia Laser */
-.laser-line {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 6px;
-    background: linear-gradient(to top, #ef4444, transparent);
-    box-shadow: 0 -5px 25px rgba(239, 68, 68, 0.8);
-    z-index: 5; animation: laserPulse 2s infinite;
-}
-@keyframes laserPulse { 0%, 100% {opacity:0.6;} 50% {opacity:1;} }
-
-/* 6. GAME OVER SCREEN */
-#gameOverScreen.game-card {
-    background: rgba(13, 25, 48, 0.95);
-    z-index: 30;
-}
-.game-over-title { font-size: 5rem; color: #ef4444; margin-bottom: 30px; text-shadow: 0 0 30px rgba(239,68,68,0.5); }
-.highlight-score { font-size: 4.5rem; color: #4ade80; margin: 0; }
-.stat-box { background: rgba(0,0,0,0.3); padding: 20px 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
-.stat-box span { display: block; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
-
-/* Buttons */
-.difficulty-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; }
-.diff-btn {
-    background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 20px; padding: 35px 20px; cursor: pointer; color: white; 
-    transition: 0.3s; position: relative; z-index: 50; /* Nổi lên để bấm được */
-}
-.diff-btn:hover { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
-.diff-btn h3 { font-size: 1.6rem; margin: 10px 0 5px; }
+/* 3. MENU SCREEN */
+.difficulty-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-top: 40px; position: relative; z-index: 30; }
+.diff-btn { background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 35px 20px; cursor: pointer; color: white; transition: 0.3s; position: relative; pointer-events: auto; }
+.diff-btn:hover { transform: translateY(-10px); box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
+.diff-btn h3 { font-size: 1.6rem; margin: 15px 0 5px; }
+.diff-btn i { font-size: 3rem; margin-bottom: 10px; display: block; }
 .diff-btn.green:hover { border-color: #4ade80; background: rgba(74, 222, 128, 0.1); }
 .diff-btn.yellow:hover { border-color: #facc15; background: rgba(250, 204, 21, 0.1); }
 .diff-btn.red:hover { border-color: #f87171; background: rgba(248, 113, 113, 0.1); }
 
-.quit-btn { 
-    margin-top: 20px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #fca5a5; padding: 12px 40px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 1rem;
-    transition: 0.3s; pointer-events: auto; z-index: 60;
+/* 4. GAME AREA */
+.game-area {
+    position: relative; height: 650px; width: 100%;
+    background: radial-gradient(circle at bottom, rgba(30, 58, 138, 0.3) 0%, rgba(10, 20, 40, 0.9) 100%);
+    border: 2px solid rgba(59, 130, 246, 0.3); border-radius: 24px; margin: 0 auto; 
+    overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 0 150px rgba(0,0,0,0.6);
 }
-.quit-btn:hover { background: #ef4444; color: white; transform: translateY(-3px); }
 
-.cta-button { padding: 15px 50px; font-size: 1.2rem; border-radius: 50px; border:none; cursor:pointer; font-weight:800; background: linear-gradient(135deg, #4ade80, #22c55e); color: #022c22; transition:0.3s; }
-.cta-button:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(74, 222, 128, 0.4); }
-.cta-button.ghost { background: transparent; border: 2px solid rgba(255,255,255,0.2); color: #cbd5e1; }
-.cta-button.ghost:hover { border-color: white; color: white; }
+/* 5. HUD */
+.hud-overlay { position: absolute; top: 25px; left: 30px; right: 30px; display: flex; justify-content: space-between; align-items: center; z-index: 50; pointer-events: none; }
+.hud-item { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(12px); padding: 10px 25px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); color: white; font-weight: bold; pointer-events: auto; }
+.score-label { font-size: 0.8rem; color: #94a3b8; letter-spacing: 1px; }
+#scoreDisplay { font-size: 1.8rem; font-family: 'Roboto Mono', monospace; line-height: 1; }
+.lives-container i { font-size: 1.6rem; margin: 0 3px; }
+.heart-filled { color: #ef4444; filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8)); }
+.heart-empty { color: rgba(255,255,255,0.1); }
 
-/* 7. LEADERBOARD (Copy style từ Blink Game) */
-.leaderboard-sidebar {
-    flex: 1; min-width: 350px;
-    background: rgba(10, 38, 71, 0.6); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 30px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3); height: fit-content;
-}
-.lb-header { font-size: 1.5rem; font-weight: 800; color: #facc15; text-align: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-.lb-list { display: flex; flex-direction: column; gap: 12px; }
-.lb-item { display: flex; align-items: center; gap: 15px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; transition: 0.3s; }
-.lb-item:hover { background: rgba(255,255,255,0.15); transform: translateX(5px); }
-.lb-rank { font-weight: 800; color: #64748b; width: 25px; text-align: center; }
-.lb-avatar { width: 38px; height: 38px; background: #334155; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid rgba(255,255,255,0.1); }
-.lb-info { flex: 1; text-align: left; }
-.lb-name { font-weight: 600; font-size: 1rem; color: #e2e8f0; }
-.lb-score { font-size: 0.9rem; color: #4ade80; font-family: monospace; }
-.lb-item.rank-1 { border-left: 4px solid #facc15; background: linear-gradient(90deg, rgba(250, 204, 21, 0.1), transparent); }
-.lb-item.rank-2 { border-left: 4px solid #cbd5e1; }
-.lb-item.rank-3 { border-left: 4px solid #d97706; }
-.lb-item.current-user { border: 1px solid #38bdf8; background: rgba(56, 189, 248, 0.1); }
+/* 6. ELEMENTS */
+.block { position: absolute; top: -80px; padding: 12px 22px; background: rgba(15, 23, 42, 0.95); border: 2px solid #3b82f6; border-radius: 12px; color: #e0f2fe; font-weight: 800; font-size: 1.5rem; font-family: 'Roboto Mono', monospace; box-shadow: 0 0 25px rgba(59, 130, 246, 0.3); will-change: transform, top; animation: fall linear forwards; z-index: 10; white-space: nowrap; }
+.block.active-target { border-color: #facc15; box-shadow: 0 0 40px rgba(250, 204, 21, 0.5); z-index: 15; transform: scale(1.1); }
+.block span.typed { color: #4ade80; text-shadow: 0 0 15px #4ade80; }
+.laser-line { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: linear-gradient(to top, #ef4444, transparent); box-shadow: 0 -5px 30px rgba(239, 68, 68, 0.8); z-index: 5; animation: laserPulse 2s infinite; }
+@keyframes laserPulse { 0%,100% {opacity:0.6;} 50% {opacity:1;} }
+@keyframes fall { from {top:-80px;} to {top:110%;} }
 
 /* Common */
 .hidden { display: none !important; }
-.exit-btn { position: absolute; top: 25px; right: 25px; background: rgba(255,255,255,0.05); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; transition: 0.3s; z-index: 50; }
-.exit-btn:hover { background: #ef4444; color: white; border-color: #ef4444; transform: rotate(90deg); }
-.game-title { font-size: 4rem; margin-bottom: 10px; background: linear-gradient(to right, #4ade80, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.4)); }
-.game-desc { font-size: 1.2rem; color: #94a3b8; margin-bottom: 40px; }
+.exit-btn { position: absolute; top: 25px; right: 25px; background: rgba(255,255,255,0.05); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; transition: 0.3s; z-index: 50; pointer-events: auto; }
+.exit-btn:hover { background: #ef4444; color: white; transform: rotate(90deg); border-color: #ef4444; }
+.neon-text { font-size: 4rem; font-weight: 900; background: linear-gradient(to right, #4ade80, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.4)); margin-bottom: 10px; }
+.game-over-title { font-size: 5rem; color: #ef4444; margin-bottom: 30px; text-shadow: 0 0 30px rgba(239,68,68,0.5); }
+.final-stats { display: flex; gap: 40px; justify-content: center; margin-bottom: 40px; }
+.stat-box { background: rgba(0,0,0,0.3); padding: 20px 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+.stat-box span { display: block; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
+.highlight-score { font-size: 4rem; color: #4ade80; margin: 0; }
+.action-buttons { display: flex; gap: 20px; justify-content: center; }
+.cta-button { padding: 15px 50px; font-size: 1.2rem; border-radius: 50px; border:none; cursor:pointer; font-weight:800; background: linear-gradient(135deg, #4ade80, #22c55e); color: #022c22; transition:0.3s; pointer-events: auto; }
+.cta-button:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(74, 222, 128, 0.4); }
+.cta-button.ghost { background: transparent; border: 2px solid rgba(255,255,255,0.2); color: #cbd5e1; box-shadow: none; }
+.cta-button.ghost:hover { border-color: white; color: white; background: rgba(255,255,255,0.1); }
+.quit-btn { margin-top: 20px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 12px 40px; border-radius: 40px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.3s; pointer-events: auto; }
+.quit-btn:hover { background: #ef4444; color: white; transform: translateY(-3px); }
 
-@media (max-width: 1200px) { .game-wrapper { flex-direction: column; gap: 50px; } .leaderboard-sidebar { width: 100%; order: 2; } .game-main-container { order: 1; } }
-/* --- FIX LỖI KHÔNG BẤM ĐƯỢC NÚT (FALLING BLOCKS) --- */
-.diff-btn {
-    position: relative;
-    z-index: 100 !important;       /* Nổi lên trên cùng */
-    pointer-events: auto !important; /* Bắt buộc nhận click */
-    cursor: pointer !important;
-}
-
-/* Đảm bảo khung menu nổi lên */
-#menuScreen {
-    position: relative;
-    z-index: 50 !important;
-}
-/* --- FIX LỖI KHÔNG BẤM ĐƯỢC NÚT (FALLING BLOCKS) --- */
-
-/* 1. Ép khung chứa nút nổi lên trên cùng */
-.difficulty-grid {
-    position: relative;
-    z-index: 1000 !important; /* Chỉ số cực cao */
-    pointer-events: auto !important;
-}
-
-/* 2. Ép từng nút bấm nhận sự kiện chuột */
-.diff-btn {
-    position: relative;
-    z-index: 1001 !important; /* Cao hơn cả grid */
-    pointer-events: auto !important; /* Bắt buộc nhận click */
-    cursor: pointer !important;
-}
-
-/* 3. Đảm bảo khung menu không bị lớp nào đè */
-#menuScreen {
-    z-index: 50 !important;
-    pointer-events: auto !important;
-}
-
-/* 4. Đảm bảo container chính nổi lên */
-.game-main-container {
-    z-index: 20 !important;
-    position: relative;
-}
+@keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }

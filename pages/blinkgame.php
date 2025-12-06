@@ -4,13 +4,12 @@ require_once 'php/db_connect.php';
 
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 $avatar_file = isset($_SESSION['user_avatar']) ? $_SESSION['user_avatar'] : null;
-
 if ($user_id && !$avatar_file) {
     $files = glob("../assets/uploads/avatar_" . $user_id . ".*");
     if (count($files) > 0) $_SESSION['user_avatar'] = basename($files[0]);
 }
 
-// Lấy điểm cao nhất để hiện ở Menu
+// Lấy điểm cao nhất
 $my_best_score = 0;
 if($user_id) {
     $stmt = $conn->prepare("SELECT MAX(score) as best FROM game_scores WHERE user_id = ? AND game_type = 'blink'");
@@ -41,8 +40,8 @@ if($user_id) {
             <a href="index.php">Home</a>
             <a href="about.php">About</a>
             <a href="tips.php">Tips</a>
+            <a href="FAQ.php">FAQ</a>
             <a href="typing.php">Typing</a>
-            
             <?php if ($user_id): ?>
                 <div class="user-profile-nav" id="userProfileNav">
                     <div class="user-avatar">
@@ -68,12 +67,13 @@ if($user_id) {
 
     <div class="game-wrapper">
         <div class="game-main-container">
+            
             <div id="levelScreen" class="game-card">
                 <a href="typing.php" class="exit-btn">✕</a>
                 <h1 class="game-title">⚡ Blink Game ⚡</h1>
                 
-                <div style="margin-bottom: 25px; display: inline-block; padding: 10px 25px; background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; border-radius: 50px; color: #4ade80; font-weight: bold; font-family: monospace; font-size: 1.2rem;">
-                    <i class="fas fa-crown"></i> Your Best: <?php echo number_format($my_best_score); ?> pts
+                <div style="margin-bottom: 25px; display: inline-block; padding: 10px 30px; background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; border-radius: 50px; color: #4ade80; font-weight: bold; font-family: monospace; font-size: 1.3rem; box-shadow: 0 0 15px rgba(74, 222, 128, 0.2);">
+                    <i class="fas fa-crown"></i> Best: <?php echo number_format($my_best_score); ?>
                 </div>
 
                 <p class="game-desc">Words appear randomly. Type them fast before they disappear!</p>
@@ -92,13 +92,11 @@ if($user_id) {
 
             <div id="playingScreen" class="game-card hidden">
                 <div id="gameArea" class="game-area">
-                    
                     <div class="hud-overlay">
                         <div class="hud-item score-container">
                             <i class="fas fa-trophy" style="color: #fbbf24; font-size: 1.2rem; margin-right: 8px;"></i>
                             <span id="scoreDisplay">0</span>
                         </div>
-
                         <div id="livesContainer" class="hud-item lives-container"></div>
                     </div>
 
@@ -106,7 +104,6 @@ if($user_id) {
                     <div id="feedbackDisplay" class="feedback hidden"></div>
                     <p id="readyText">Get ready...</p>
                 </div>
-                
                 <button class="quit-btn" onclick="returnToMenu()">✕ Quit Game</button>
             </div>
 
@@ -125,22 +122,13 @@ if($user_id) {
                 </div>
             </div>
         </div>
-
-        <div class="leaderboard-sidebar">
-            <div class="lb-header"><i class="fas fa-crown" style="color: #facc15;"></i> Top Players</div>
-            <div class="lb-list">
-                <?php include 'php/get_leaderboard.php'; ?>
-            </div>
         </div>
-    </div>
 
     <script src="../assets/js/script.js"></script>
     <script src="../assets/js/pages/blinkgame.js"></script>
     <script>
         const userNav = document.getElementById('userProfileNav');
-        if(userNav) {
-            userNav.addEventListener('click', function(e) { e.stopPropagation(); this.classList.toggle('active'); });
-        }
+        if(userNav) userNav.addEventListener('click', function(e) { e.stopPropagation(); this.classList.toggle('active'); });
         document.addEventListener('click', () => { if(userNav) userNav.classList.remove('active'); });
     </script>
 </body>

@@ -1,5 +1,6 @@
 <?php
 session_start();
+// Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) { header("Location: login/login.html"); exit(); }
 
 $user_id = $_SESSION['user_id'];
@@ -18,6 +19,18 @@ if (!$avatar_file) {
 </head>
 <body>
     <div class="hero">
+        <div class="stars" id="starsContainer"></div>
+        <div class="moon">
+            <div class="moon-crater crater1"></div>
+            <div class="moon-crater crater2"></div>
+            <div class="moon-crater crater3"></div>
+        </div>
+        <div class="clouds">
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
+            <div class="cloud cloud3"></div>
+        </div>
+
         <nav>
             <div class="nav-left"><div class="logo">NoobDev</div></div>
             <div class="nav-links">
@@ -25,10 +38,13 @@ if (!$avatar_file) {
                 <a href="pages/about.php" data-translate="navAbout">About</a>
                 <a href="pages/tips.php" data-translate="navTips">Tips</a>
                 <a href="pages/FAQ.php" data-translate="navFAQ">FAQ</a>
-                <a href="pages/typing.php" data-translate="navTyping">Typing Practice</a>
+                <a href="pages/typing.php" data-translate="navTyping">Typing</a>
                 
                 <div class="language-dropdown">
-                    <button class="language-btn" id="languageBtn">Language ▼</button>
+                    <button class="language-btn" id="languageBtn">
+                        <span data-translate="navLanguage">Language</span> 
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
                     <div class="language-menu" id="languageMenu">
                         <a href="#" data-lang="en" class="language-option active">English</a>
                         <a href="#" data-lang="vi" class="language-option">Vietnamese</a>
@@ -45,6 +61,7 @@ if (!$avatar_file) {
                     </div>
                     <div class="user-name"><?php echo htmlspecialchars($_SESSION['user_name']); ?></div>
                     <div class="dropdown-arrow">▼</div>
+                    
                     <div class="profile-dropdown-nav">
                         <a href="dashboard.php" class="dropdown-item-nav"><span>🏠</span> Dashboard</a>
                         <a href="pages/typing.php" class="dropdown-item-nav"><span>⌨️</span> Practice</a>
@@ -69,12 +86,12 @@ if (!$avatar_file) {
             </ul>
         </div>
 
-        <div class="stars" id="starsContainer"></div>
         <div class="content">
             <h1>Welcome back, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</h1>
             <a href="pages/typing.php" class="cta-button">Start Typing</a>
         </div>
     </div>
+
     <script src="assets/js/script.js"></script>
 </body>
 </html>

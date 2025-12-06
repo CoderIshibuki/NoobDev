@@ -16,17 +16,33 @@ if ($user_id && !$avatar_file) {
 </head>
 <body>
     <div class="hero">
+        <div class="stars" id="starsContainer"></div>
+        <div class="moon">
+            <div class="moon-crater crater1"></div>
+            <div class="moon-crater crater2"></div>
+            <div class="moon-crater crater3"></div>
+        </div>
+        <div class="clouds">
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
+            <div class="cloud cloud3"></div>
+        </div>
+
         <nav>
             <div class="nav-left"><div class="logo">NoobDev</div></div>
             <div class="nav-links">
-                <a href="index.php" data-translate="navHome">Home</a>
+                <a href="index.php" class="active" data-translate="navHome">Home</a>
                 <a href="pages/about.php" data-translate="navAbout">About</a>
                 <a href="pages/tips.php" data-translate="navTips">Tips</a>
                 <a href="pages/FAQ.php" data-translate="navFAQ">FAQ</a>
-                <?php if ($user_id): ?><a href="pages/typing.php" data-translate="navTyping">Typing</a><?php endif; ?>
+                
+                <a href="pages/typing.php" data-translate="navTyping">Typing</a>
 
                 <div class="language-dropdown">
-                    <button class="language-btn" id="languageBtn">Language ▼</button>
+                    <button class="language-btn" id="languageBtn">
+                        <span data-translate="navLanguage">Language</span> 
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
                     <div class="language-menu" id="languageMenu">
                         <a href="#" data-lang="en" class="language-option active">English</a>
                         <a href="#" data-lang="vi" class="language-option">Vietnamese</a>
@@ -65,8 +81,8 @@ if ($user_id && !$avatar_file) {
                 <li><a href="pages/about.php">About</a></li>
                 <li><a href="pages/tips.php">Tips</a></li>
                 <li><a href="pages/FAQ.php">FAQ</a></li>
+                <li><a href="pages/typing.php">Typing</a></li>
                 <?php if ($user_id): ?>
-                    <li><a href="pages/typing.php">Typing</a></li>
                     <li><a href="pages/settings.php">Settings</a></li>
                     <li><a href="login/php/logout.php">Logout</a></li>
                 <?php else: ?>
@@ -83,8 +99,18 @@ if ($user_id && !$avatar_file) {
                 <a href="login/login.html" class="cta-button" data-translate="heroButton">Start Learning Now</a>
             <?php endif; ?>
         </div>
-        <div class="stars" id="starsContainer"></div>
     </div>
     <script src="assets/js/script.js"></script>
+    <script>
+        const userNav = document.getElementById('userProfileNav');
+        if(userNav) userNav.addEventListener('click', (e) => { e.stopPropagation(); userNav.classList.toggle('active'); });
+        const langBtn = document.getElementById('languageBtn');
+        const langMenu = document.getElementById('languageMenu');
+        if(langBtn) langBtn.addEventListener('click', (e) => { e.stopPropagation(); langMenu.classList.toggle('active'); });
+        document.addEventListener('click', () => {
+            if(userNav) userNav.classList.remove('active');
+            if(langMenu) langMenu.classList.remove('active');
+        });
+    </script>
 </body>
 </html>
