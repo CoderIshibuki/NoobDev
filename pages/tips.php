@@ -246,7 +246,7 @@ if ($user_id && !$avatar_file) {
             </div>
 
         </div>
-
+<footer><p>&copy; 2025 NoobDev. Keep Clacking.</p></footer>
     </div>
 
     <script src="../assets/js/script.js"></script>

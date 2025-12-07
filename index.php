@@ -99,6 +99,8 @@ if ($user_id && !$avatar_file) {
                 <a href="login/login.html" class="cta-button" data-translate="heroButton">Start Learning Now</a>
             <?php endif; ?>
         </div>
+
+        <footer><p>&copy; 2025 NoobDev. Keep Clacking.</p></footer>
     </div>
     <script src="assets/js/script.js"></script>
     <script>

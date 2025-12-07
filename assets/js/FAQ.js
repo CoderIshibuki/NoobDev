@@ -15,7 +15,7 @@ const translations = {
         q4Title: "How long do I need to practice?",
         q5Title: "What is WPM?",
         q6Title: "What are net keystrokes?",
-        q7Title: "What are gross keystrokes?",
+        q7Title: "What are gross keystrokes?", 
         q8Title: "What are total keystrokes?",
         q9Title: "Accuracy vs Actual Accuracy?",
         q10Title: "What is touch typing?",

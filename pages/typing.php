@@ -100,11 +100,15 @@ if (!$avatar_file) {
                     <div class="section-grid">
                         <a href="blinkgame.php" class="lesson-card" style="text-decoration: none; color: inherit;">
                             <div class="card-header"><i class="fas fa-bolt lesson-icon"></i></div>
-                            <div class="lesson-info"><h3>Blink Game</h3><p>Speed & Reflexes</p></div>
+                            <div class="lesson-info"><h3>Blink Game</h3><p style="font-size:20px">Speed & Reflexes</p></div>
                         </a>
                         <a href="fallingblocks.php" class="lesson-card" style="text-decoration: none; color: inherit;">
                             <div class="card-header"><i class="fas fa-cubes lesson-icon"></i></div>
-                            <div class="lesson-info"><h3>Falling Blocks</h3><p>Survival Typing</p></div>
+                            <div class="lesson-info"><h3>Falling Block</h3><p style="font-size:20px"> Coming Soon</p></div>
+                        </a>
+                        <a href="#" class="lesson-card" style="text-decoration: none; color: inherit;">
+                            <div class="card-header"><i class="fas fa-cubes lesson-icon"></i></div>
+                            <div class="lesson-info"><h3>Typing Racer</h3><p style="font-size:20px">Coming Soon</p></div>
                         </a>
                     </div>
                 </div>
@@ -189,6 +193,7 @@ if (!$avatar_file) {
 </div>
 
         </div>
+        
     </div>
 
     <script>const CURRENT_USER_ID = "<?php echo $user_id; ?>";</script>
