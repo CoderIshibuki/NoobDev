@@ -1,5 +1,7 @@
 /* --- LƯU TẠI: assets/js/pages/fallingblocks.js --- */
 
+import { saveGameScore } from '../firebase/db.js';
+
 const WORDS = {
     en: ["Python", "Java", "HTML", "CSS", "React", "NodeJS", "SQL", "Docker", "Git", "Windows", "Linux", "Apple", "Google", "Amazon", "Tesla", "CPU", "GPU", "RAM", "SSD", "USB", "WIFI", "VPN", "API", "JSON", "XML", "PDF", "Code", "Bug", "Dev", "Web", "App", "AI"],
     vi: ["PhanMem", "PhanCung", "MayTinh", "DienThoai", "BanPhim", "Chuot", "ManHinh", "TaiNghe", "Loa", "Wifi", "3G", "4G", "5G", "Pin", "Sac", "Code", "Bug", "Web", "App", "Game", "Tien", "Vang", "Bac", "Sach", "Vo", "But"]
@@ -154,11 +156,8 @@ function endGame() {
     document.getElementById('playingScreen').classList.add('hidden');
     document.getElementById('gameOverScreen').classList.remove('hidden');
     document.getElementById('finalScore').innerText = score;
-    
-    const fd = new FormData();
-    fd.append('game_type', 'falling'); fd.append('score', score);
-    fetch('php/save_score.php', {method:'POST', body:fd});
-    // Không gọi updateLeaderboardUI()
+    console.log("Saving score to Firebase...");
+    saveGameScore('falling', score); // Gọi hàm từ db.js
 }
 
 function updateHUD() {

@@ -1,5 +1,7 @@
 /* --- LƯU TẠI: assets/js/pages/blinkgame.js --- */
 
+import { saveGameScore } from '../firebase/db.js';
+
 const WORDS = {
     en: ["Python", "Java", "HTML", "CSS", "React", "NodeJS", "SQL", "Docker", "Git", "Windows", "Linux", "Apple", "Google", "Amazon", "Tesla", "CPU", "GPU", "RAM", "SSD", "USB", "WIFI", "VPN", "API", "JSON", "XML", "PDF", "Code", "Bug", "Dev", "Web", "App", "AI"],
     vi: ["PhanMem", "PhanCung", "MayTinh", "DienThoai", "BanPhim", "Chuot", "ManHinh", "TaiNghe", "Loa", "Wifi", "3G", "4G", "5G", "Pin", "Sac", "Code", "Bug", "Web", "App", "Game", "Tien", "Vang", "Bac", "Sach", "Vo", "But"]
@@ -145,16 +147,9 @@ function endGame() {
     
     document.getElementById('finalScore').innerText = score;
     
-    const fd = new FormData();
-    fd.append('game_type', 'blink'); 
-    fd.append('score', score);
-    
-    fetch('php/save_score.php', {method:'POST', body:fd})
-    .then(response => response.json())
-    .then(data => {
-        console.log("Score Saved:", data);
-        // Không cần gọi updateLeaderboardUI() nữa vì đã xóa bảng đó
-    });
+    // 2. XÓA FETCH PHP CŨ & THAY BẰNG CODE MỚI
+    console.log("Saving blink score...");
+    saveGameScore('blink', score); 
 }
 
 function renderLives() {
