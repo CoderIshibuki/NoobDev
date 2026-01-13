@@ -24,7 +24,7 @@ function handleHeroButton() {
         } else {
             // Trạng thái mặc định
             btn.innerText = "Start Learning Now";
-            btn.href = "pages/login.html";
+            btn.href = "login.html";
         }
     });
 }
