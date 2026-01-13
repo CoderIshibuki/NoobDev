@@ -7,7 +7,7 @@ export function renderNavbar() {
     const navHTML = `
         <div class="nav-left">
             <button class="menu-toggle" id="menuToggle"><span></span><span></span><span></span></button>
-            <div class="logo">NoobDev</div>
+            <div class="logo">&lt;NoobDev/&gt;</div>
         </div>
         <div class="nav-links">
             <a href="/index.html">Home</a>

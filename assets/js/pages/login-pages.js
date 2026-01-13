@@ -118,7 +118,7 @@ function createStarsDirectly() {
     const container = document.getElementById('starsContainer');
     if(!container) return;
     container.innerHTML = '';
-    for(let i=0; i<150; i++) {
+    for(let i=0; i<600; i++) {
         const star = document.createElement('div');
         star.className = 'star';
         const s = Math.random() * 2 + 1;

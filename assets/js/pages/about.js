@@ -23,7 +23,7 @@ function createStars() {
     const container = document.getElementById('starsContainer');
     if (!container || container.innerHTML !== "") return; // Tránh tạo trùng
 
-    const starCount = 150;
+    const starCount = 600;
     for (let i = 0; i < starCount; i++) {
         const star = document.createElement('div');
         star.className = 'star';

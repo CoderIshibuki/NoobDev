@@ -8,7 +8,7 @@ function initStars() {
     if(!container) return;
     
     container.innerHTML = '';
-    const starCount = 200; // Số lượng sao
+    const starCount = 600; // Số lượng sao
 
     for(let i=0; i < starCount; i++) {
         const star = document.createElement('div');
