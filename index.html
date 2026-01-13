@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoobDev - Master Touch Typing</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <style>
+        /* 1. Căn giữa lại bố cục Hero */
+        .hero {
+            /* Ghi đè align-items để nội dung nằm giữa màn hình */
+            justify-content: center; 
+            /* Đảm bảo nội dung nổi lên trên lớp mây/sao */
+            z-index: 1; 
+        }
+
+        /* 2. Container chứa chữ và nút */
+        .hero-content {
+            text-align: center;
+            margin-top: -50px; /* Đẩy lên nhẹ để cân đối mắt nhìn */
+            padding: 0 20px;
+            animation: fadeInUp 1s ease-out;
+            position: relative;
+            z-index: 100;
+        }
+
+        /* 3. Tiêu đề lớn (H1) */
+        .hero-content h1 {
+            font-size: 4.5rem; /* Chữ cực to */
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 25px;
+            color: #ffffff;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5); /* Đổ bóng chữ */
+        }
+       /* 5. Dòng phụ đề nhỏ (Subtitle) */
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: #cbd5e1; /* Màu xám xanh nhạt dễ đọc */
+            margin-bottom: 60px;
+            margin-top: 40px;
+            font-weight: 300;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 6. Nút bấm (CTA Button) - Biến link thành nút */
+        .cta-button {
+            display: inline-block;
+            padding: 18px 45px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #0f172a; /* Chữ màu tối */
+            background: #38bdf8; /* Nền xanh sáng */
+            border-radius: 50px; /* Bo tròn viên thuốc */
+            text-decoration: none;
+            /* Hiệu ứng phát sáng neon */
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); 
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        /* Hiệu ứng khi di chuột vào nút */
+        .cta-button:hover {
+            transform: translateY(-5px); /* Nổi lên */
+            background: transparent; /* Nền trong suốt */
+            color: #38bdf8; /* Chữ chuyển thành xanh */
+            border-color: #38bdf8; /* Viền hiện ra */
+            box-shadow: 0 0 40px rgba(56, 189, 248, 0.7); /* Sáng mạnh hơn */
+        }
+
+        /* 7. Footer cố định */
+        footer {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+        }
+
+        /* Animation xuất hiện từ dưới lên */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive cho Mobile */
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1rem; }
+            .cta-button { padding: 15px 30px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <div class="stars" id="starsContainer"></div>
+        <div class="moon"></div>
+        <div class="clouds">
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
+            <div class="cloud cloud3"></div>
+        </div>
+
+        <nav></nav>
+
+        <div class="hero-content">
+            <h1 data-translate="heroTitle">
+                Learn Touch Typing for free!<br> 
+            </h1>
+            
+            <p class="hero-subtitle" data-translate="heroSubtitle">
+                Master the keyboard with our interactive lessons. Type faster, work smarter.
+            </p>
+            
+            <a href="pages/login.html" class="cta-button" id="heroCta" data-translate="heroButton">
+                Start Learning Now
+            </a>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 NoobDev. Keep Clacking.</p>
+        </footer>
+    </div>
+
+    <script type="module" src="assets/js/main.js"></script>
+    <script type="module" src="assets/js/pages/home.js"></script>
+</body>
+</html>

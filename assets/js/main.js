@@ -1,20 +1,37 @@
-// assets/js/main.js
-
-// 1. Import các thành phần
+/* assets/js/main.js */
 import { renderNavbar } from './components/navbar.js';
-import { initStars } from './ui/effects.js';
 import { initLanguage } from './ui/language.js';
 
-// 2. Chạy khi trang tải xong
+// Hàm tạo sao (có thể import từ file effects.js hoặc viết trực tiếp nếu đơn giản)
+function initStars() {
+    const container = document.getElementById('starsContainer');
+    if(!container) return;
+    
+    container.innerHTML = '';
+    const starCount = 200; // Số lượng sao
+
+    for(let i=0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        const size = Math.random() * 2 + 1; 
+        const delay = Math.random() * 5;
+
+        star.style.left = x + '%';
+        star.style.top = y + '%';
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.animationDelay = delay + 's';
+        
+        container.appendChild(star);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("🚀 App Started");
-
-    // Hiển thị Menu
-    renderNavbar();
-
-    // Tạo hiệu ứng nền
-    initStars();
-
-    // Cài đặt ngôn ngữ
-    initLanguage();
+    console.log("🚀 Main App Started");
+    renderNavbar();   // Hiển thị menu
+    initStars();      // Hiển thị sao
+    initLanguage();   // Cài đặt ngôn ngữ
 });

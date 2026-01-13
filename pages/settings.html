@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings - NoobDev</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .settings-container {
+            max-width: 600px; margin: 150px auto 50px; background: rgba(255,255,255,0.1);
+            padding: 40px; border-radius: 20px; backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 10;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #d1e8ff; font-weight: bold;}
+        .form-group input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white; }
+        .btn-save { background: linear-gradient(135deg, #4a8dbf, #2c7da0); color: white; padding: 12px 30px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px;}
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .msg { padding: 15px; margin-bottom: 20px; border-radius: 8px; text-align: center; display: none; }
+        .success { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; display: block; }
+        .error { background: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid #dc3545; display: block; }
+    </style>
+</head>
+<body>
+    <nav></nav>
+
+    <div class="hero">
+        <div class="stars" id="starsContainer"></div>
+        
+        <div class="settings-container">
+            <h2 style="text-align: center; margin-bottom: 30px; color: white;">Account Settings</h2>
+            
+            <div id="messageBox" class="msg"></div>
+
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="displayNameInput" placeholder="Loading...">
+                </div>
+                
+                <div class="form-group">
+                    <label>New Password (Leave blank to keep current)</label>
+                    <input type="password" id="passwordInput" placeholder="Enter new password to change">
+                </div>
+
+                <button type="submit" class="btn-save">Save Changes</button>
+            </form>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="../dashboard.html" style="color: rgba(255,255,255,0.6); text-decoration: none;">Cancel & Go Back</a>
+            </div>
+        </div>
+        
+        <div class="clouds"><div class="cloud cloud1"></div><div class="cloud cloud2"></div></div>
+    </div>
+    
+    <script type="module">
+        import { renderNavbar } from '../assets/js/components/navbar.js';
+        import { initStars } from '../assets/js/ui/effects.js';
+        import { auth } from '../assets/js/firebase/config.js';
+        import { updateProfile, updatePassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNavbar();
+            initStars();
+
+            const nameInput = document.getElementById('displayNameInput');
+            const passInput = document.getElementById('passwordInput');
+            const form = document.getElementById('settingsForm');
+            const msgBox = document.getElementById('messageBox');
+
+            // 1. Load thông tin hiện tại
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    nameInput.value = user.displayName || "";
+                } else {
+                    // Nếu chưa login thì đá về trang login
+                    window.location.href = "/login.html";
+                }
+            });
+
+            // 2. Xử lý lưu
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const user = auth.currentUser;
+                const newName = nameInput.value.trim();
+                const newPass = passInput.value;
+                
+                msgBox.className = 'msg'; 
+                msgBox.innerText = "Updating...";
+                msgBox.style.display = 'block';
+
+                try {
+                    const promises = [];
+                    // Cập nhật tên nếu thay đổi
+                    if (newName && newName !== user.displayName) {
+                        promises.push(updateProfile(user, { displayName: newName }));
+                    }
+                    // Cập nhật pass nếu có nhập
+                    if (newPass) {
+                        if (newPass.length < 6) throw new Error("Password must be at least 6 characters.");
+                        promises.push(updatePassword(user, newPass));
+                    }
+
+                    await Promise.all(promises);
+
+                    msgBox.className = 'msg success';
+                    msgBox.innerText = "Account updated successfully!";
+                    setTimeout(() => window.location.reload(), 1500); // Reload để thấy tên mới trên Navbar
+
+                } catch (error) {
+                    msgBox.className = 'msg error';
+                    msgBox.innerText = error.message;
+                    // Lỗi phổ biến: Firebase yêu cầu đăng nhập lại mới cho đổi pass
+                    if (error.code === 'auth/requires-recent-login') {
+                         msgBox.innerText = "For security, please logout and login again to change password.";
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

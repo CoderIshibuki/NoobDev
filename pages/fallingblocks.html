@@ -1,23 +1,3 @@
-<?php
-session_start();
-require_once 'php/db_connect.php'; 
-$user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
-$avatar_file = isset($_SESSION['user_avatar']) ? $_SESSION['user_avatar'] : null;
-if ($user_id && !$avatar_file) {
-    $files = glob("../assets/uploads/avatar_" . $user_id . ".*");
-    if (count($files) > 0) $_SESSION['user_avatar'] = basename($files[0]);
-}
-
-$my_best_score = 0;
-if($user_id) {
-    $stmt = $conn->prepare("SELECT MAX(score) as best FROM game_scores WHERE user_id = ? AND game_type = 'falling'");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if($row = $res->fetch_assoc()) $my_best_score = $row['best'] ? $row['best'] : 0;
-    $stmt->close();
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,45 +12,16 @@ if($user_id) {
     <div class="stars" id="starsContainer"></div>
     <div class="moon"><div class="moon-crater crater1"></div></div>
     
-    <nav>
-        <div class="nav-left"><div class="logo">NoobDev</div></div>
-        <div class="nav-links">
-            <a href="index.php">Home</a>
-            <a href="about.php">About</a>
-            <a href="tips.php">Tips</a>
-            <a href="FAQ.php">FAQ</a>
-            <a href="typing.php">Typing</a>
-            <?php if ($user_id): ?>
-                <div class="user-profile-nav" id="userProfileNav">
-                    <div class="user-avatar">
-                        <?php if(isset($_SESSION['user_avatar'])): ?>
-                            <img src="../assets/uploads/<?php echo $_SESSION['user_avatar']; ?>?t=<?php echo time(); ?>">
-                        <?php else: ?>
-                            <?php echo strtoupper(substr($_SESSION['user_name'], 0, 1)); ?>
-                        <?php endif; ?>
-                    </div>
-                    <div class="user-name"><?php echo htmlspecialchars($_SESSION['user_name']); ?></div>
-                    <div class="dropdown-arrow">▼</div>
-                    <div class="profile-dropdown-nav">
-                        <a href="../dashboard.php" class="dropdown-item-nav"><span>🏠</span> Dashboard</a>
-                        <a href="typing.php" class="dropdown-item-nav"><span>⌨️</span> Practice</a>
-                        <a href="../login/php/logout.php" class="dropdown-item-nav"><span>🚪</span> Logout</a>
-                    </div>
-                </div>
-            <?php else: ?>
-                <a href="../login/login.html" class="login-btn">Login</a>
-            <?php endif; ?>
-        </div>
-    </nav>
+    <nav></nav>
 
     <div class="game-wrapper">
         <div class="game-main-container">
             <div id="menuScreen" class="game-card">
-                <a href="typing.php" class="exit-btn">✕</a>
+                <a href="typing.html" class="exit-btn">✕</a>
                 <h1 class="game-title neon-text">NEON FALL</h1>
                 
                 <div style="margin-bottom: 25px; display: inline-block; padding: 10px 30px; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; border-radius: 50px; color: #60a5fa; font-weight: bold; font-family: monospace; font-size: 1.3rem; box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);">
-                    <i class="fas fa-crown"></i> Best: <?php echo number_format($my_best_score); ?>
+                    <i class="fas fa-crown"></i> Best: <span id="bestScoreDisplay">--</span>
                 </div>
 
                 <p class="game-desc">Type the falling words! (Case Sensitive)</p>
@@ -96,7 +47,7 @@ if($user_id) {
             </div>
 
             <div id="gameOverScreen" class="game-card hidden">
-                <a href="typing.php" class="exit-btn">✕</a>
+                <a href="typing.html" class="exit-btn">✕</a>
                 <h2 class="game-over-title">SYSTEM FAILURE</h2>
                 <div class="final-stats">
                     <div class="stat-box"><span>Final Score</span><h3 id="finalScore" class="highlight-score">0</h3></div>
@@ -107,14 +58,16 @@ if($user_id) {
                 </div>
             </div>
         </div>
-        </div>
+    </div>
 
-    <script src="../assets/js/script.js"></script>
-    <script src="../assets/js/pages/fallingblocks.js"></script>
-    <script>
-        const userNav = document.getElementById('userProfileNav');
-        if(userNav) userNav.addEventListener('click', function(e){ e.stopPropagation(); this.classList.toggle('active'); });
-        document.addEventListener('click', () => { if(userNav) userNav.classList.remove('active'); });
+    <script type="module">
+        import { renderNavbar } from '../assets/js/components/navbar.js';
+        import { initStars } from '../assets/js/ui/effects.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNavbar();
+            initStars();
+        });
     </script>
+    <script type="module" src="../assets/js/pages/fallingblocks.js"></script>
 </body>
 </html>

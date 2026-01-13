@@ -1,152 +1,77 @@
-/* --- LƯU TẠI: assets/css/about.css --- */
+/* assets/css/about.css */
 
-/* 1. CORE STYLES (Đồng bộ Tips) */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 140px; 
-}
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    overflow-x: hidden;
-    
-    /* [THAY ĐỔI 1] Đổi màu nền dự phòng sang màu tối của Typing */
-    background: #0a2647; 
-    
-    color: white;
-    line-height: 1.6;
-    font-size: 22px; 
+/* 1. CONTAINER */
+.about-container { 
+    width: 90%; max-width: 1300px; margin: 0 auto; 
+    padding-top: 50px; padding-bottom: 60px; position: relative; z-index: 10;
 }
 
-/* 2. BACKGROUND & NAV */
-.hero {
-    min-height: 100vh;
-    
-    /* [THAY ĐỔI 2] Đổi Gradient sang tông xanh đen đậm (Giống Typing/Style gốc) */
-    background: linear-gradient(135deg, #0a2647 0%, #1a4d7a 50%, #2c7da0 100%);
-    
-    position: relative;
-    padding-bottom: 120px;
-    overflow: hidden; 
-}
-
-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-.nav-left { display: flex; align-items: center; gap: 25px; }
-.logo { font-size: 32px; font-weight: 700; color: white; letter-spacing: -0.5px; }
-.nav-links { display: flex; gap: 35px; align-items: center; }
-.nav-links a { color: white; text-decoration: none; font-size: 17px; font-weight: 500; transition: all 0.3s ease; position: relative; }
-.nav-links a.active { color: #5babe8; font-weight: 700; }
-.nav-links a:not(.login-btn):not(.active):hover { color: #4a8dbf; transform: translateY(-1px); }
-.nav-links a:not(.login-btn)::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: #4a8dbf; transition: width 0.3s ease; }
-.nav-links a:not(.login-btn):not(.active):hover::after { width: 100%; }
-.login-btn { background: linear-gradient(135deg, #4a8dbf, #2c7da0); color: white !important; padding: 12px 35px; border-radius: 25px; font-weight: 600; border: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(74, 141, 191, 0.3); font-size: 16px; }
-.login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(74, 141, 191, 0.4); background: linear-gradient(135deg, #5a9dcf, #3c8db0); }
-
-.language-dropdown, .user-profile-nav { position: relative; }
-.language-btn, .user-profile-nav { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 20px; transition: all 0.3s ease; backdrop-filter: blur(10px); }
-.user-profile-nav { padding: 5px 15px; }
-.language-btn:hover, .user-profile-nav:hover { background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.3); }
-.language-menu, .profile-dropdown-nav { position: absolute; top: calc(100% + 10px); right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); min-width: 180px; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.3s ease; z-index: 1000; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.2); }
-.active .language-menu, .active .profile-dropdown-nav { opacity: 1; visibility: visible; transform: translateY(0); }
-.language-option, .dropdown-item-nav { display: flex; align-items: center; padding: 14px 25px; color: #0a2647 !important; text-decoration: none; font-size: 16px; border-bottom: 1px solid rgba(10, 38, 71, 0.1); cursor: pointer; }
-.language-option:hover, .dropdown-item-nav:hover { background: rgba(10, 38, 71, 0.08); padding-left: 30px; }
-.user-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #4a8dbf, #2c7da0); display: flex; align-items: center; justify-content: center; font-weight: bold; overflow: hidden; }
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-/* Animations */
-.stars { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 1; filter: blur(2px); }
-.star { position: absolute; background: white; border-radius: 50%; animation: twinkle 4s infinite; }
-.moon { position: absolute; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #f0f8ff, #d4e8f5); box-shadow: 0 0 60px rgba(255,255,255,0.4); top: 150px; right: 5%; animation: float 6s infinite; z-index: 1; filter: blur(3px); }
-.moon-crater { position: absolute; border-radius: 50%; background: rgba(180,200,220,0.3); box-shadow: inset 2px 2px 4px rgba(0,0,0,0.1); }
-.crater1 { width:30px; height:30px; top:40px; left:50px; } .crater2 { width:20px; height:20px; top:90px; left:100px; } .crater3 { width:15px; height:15px; top:140px; left:70px; }
-.clouds { position: absolute; bottom: 0; width: 100%; height: 200px; overflow: hidden; z-index: 2; pointer-events: none; filter: blur(5px); }
-.cloud { position: absolute; background: white; border-radius: 100px; opacity: 0.8; filter: blur(1px); }
-.cloud1 { width:150px; height:60px; bottom:20px; left:5%; animation: drift 20s linear infinite; }
-.cloud2 { width:180px; height:70px; bottom:50px; left:30%; animation: drift 25s linear infinite; }
-.cloud3 { width:120px; height:50px; bottom:30px; right:10%; animation: drift 30s linear infinite; }
-@keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-@keyframes drift { from { transform: translateX(-100px); } to { transform: translateX(calc(100vw + 100px)); } }
-.menu-toggle { display: none; flex-direction: column; gap: 5px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; cursor: pointer; padding: 12px; }
-.menu-toggle span { width: 25px; height: 3px; background: white; transition: 0.3s; }
-.side-menu { position: fixed; left: -320px; top: 0; height: 100vh; width: 300px; background: rgba(10, 38, 71, 0.98); backdrop-filter: blur(20px); z-index: 1000; transition: left 0.4s ease; padding: 100px 30px 30px; box-shadow: 5px 0 30px rgba(0, 0, 0, 0.5); }
-.side-menu.active { left: 0; }
-.side-menu ul { list-style: none; }
-.side-menu li { margin: 25px 0; }
-.side-menu a { color: white; text-decoration: none; font-size: 20px; }
-
-/* --- 3. ABOUT PAGE SPECIFIC STYLES --- */
-.about-container { position: relative; z-index: 10; width: 90%; max-width: 1300px; margin: 0 auto; padding-top: 200px; padding-bottom: 60px; }
-
-/* Header */
-.content-header { text-align: center; margin-bottom: 80px; position: relative; z-index: 10; }
+/* 2. HEADER */
+.content-header { text-align: center; margin-bottom: 80px; }
 .content-header h1 {
-    font-size: 70px; font-weight: 800; margin-bottom: 20px; 
-    background: linear-gradient(to right, #ffffff, #5babe8); 
+    font-size: 4rem; font-weight: 800; margin-bottom: 20px; 
+    background: linear-gradient(to right, #fff, #38bdf8); 
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-    filter: drop-shadow(0 0 20px rgba(91, 171, 232, 0.4)); min-height: 90px;
+    min-height: 80px;
 }
-.content-header p { color: #cbd5e1; font-size: 30px; font-weight: 300; }
-.cursor { display: inline-block; width: 4px; background-color: #5babe8; animation: blink 1s infinite; }
-@keyframes blink { 50% { opacity: 0; } }
+.content-header p { color: #cbd5e1; font-size: 1.5rem; }
 
-/* Mission Grid (CẬP NHẬT MÀU) */
+/* 3. CARDS (ĐỒNG BỘ STYLE VỚI FAQ) */
 .story-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-bottom: 80px; }
+
 .glass-card {
-    /* Màu nền tối giống Typing Cards */
-    background: rgba(13, 45, 80, 0.6); 
-    backdrop-filter: blur(12px); 
-    border: 1px solid rgba(255, 255, 255, 0.08); 
-    border-radius: 20px; padding: 40px; 
+    /* Style chuẩn từ FAQ */
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px; padding: 40px; 
     transition: all 0.3s ease; display: flex; flex-direction: column;
 }
+
 .glass-card:hover { 
     transform: translateY(-10px); 
-    /* Màu hover đậm hơn */
-    background: rgba(20, 55, 90, 0.8); 
-    border-color: #5babe8; 
+    border-color: rgba(56, 189, 248, 0.3);
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3); 
 }
-.feature-icon { font-size: 50px; color: #5babe8; margin-bottom: 25px; }
-.glass-card h3 { font-size: 30px; margin-bottom: 20px; color: white; }
-.glass-card p { font-size: 20px; color: #cbd5e1; line-height: 1.7; flex-grow: 1; }
-.glass-card ul { list-style: none; margin-top: 20px; }
-.glass-card ul li { font-size: 20px; margin-bottom: 15px; padding-left: 25px; position: relative; color: #cbd5e1; }
-.glass-card ul li::before { content: '▹'; position: absolute; left: 0; color: #5babe8; }
 
-/* Team Section (CẬP NHẬT MÀU) */
+.feature-icon { font-size: 40px; color: #38bdf8; margin-bottom: 20px; }
+.glass-card h3 { font-size: 1.5rem; margin-bottom: 15px; color: #e2e8f0; }
+.glass-card p { font-size: 1rem; color: #94a3b8; line-height: 1.7; }
+
+/* 4. TEAM SECTION */
 .team-section { margin-bottom: 80px; text-align: center; }
-.section-title { font-size: 42px; margin-bottom: 50px; color: white; position: relative; display: inline-block; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
-.team-grid { display: flex; justify-content: space-between; flex-wrap: nowrap; gap: 20px; overflow-x: auto; padding-bottom: 20px; }
+.section-title { font-size: 2.5rem; margin-bottom: 50px; color: white; font-weight: 700; }
+.team-grid { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; justify-content: center; flex-wrap: wrap; }
+
 .team-member { 
-    /* Màu nền tối */
-    background: rgba(15, 23, 42, 0.6);
-    border-radius: 20px; padding: 40px 15px; flex: 1; min-width: 200px; 
-    transition: all 0.4s; border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;
+    background: rgba(30, 41, 59, 0.7); /* Đồng bộ nền */
+    border-radius: 20px; padding: 40px 20px; width: 220px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.4s; 
 }
 .team-member:hover { 
-    background: rgba(20, 55, 90, 0.8); 
-    border-color: #5babe8; transform: translateY(-10px) scale(1.05); 
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); z-index: 2;
+    transform: translateY(-10px); border-color: #38bdf8;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
-.avatar-placeholder { width: 100px; height: 100px; background: linear-gradient(135deg, #1a4d7a, #5babe8); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: white; border: 3px solid rgba(255,255,255,0.1); }
-.team-name { font-size: 20px; font-weight: 700; color: white; margin-bottom: 5px; white-space: nowrap; }
-.team-role { font-size: 14px; color: #5babe8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
 
-/* Tech Stack (CẬP NHẬT MÀU) */
+.avatar-placeholder { 
+    width: 80px; height: 80px; margin: 0 auto 20px; 
+    background: linear-gradient(135deg, #0f172a, #334155);
+    border: 2px solid rgba(255,255,255,0.1); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 30px; color: #38bdf8;
+}
+.team-name { font-size: 1.2rem; font-weight: 700; color: white; margin-bottom: 5px; }
+.team-role { font-size: 0.9rem; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px; }
+
+/* 5. TECH STACK */
 .tech-stack { 
     text-align: center; padding: 50px; 
-    background: rgba(15, 23, 42, 0.6); /* Nền tối */
+    background: rgba(30, 41, 59, 0.4); 
     border-radius: 20px; margin-top: 80px; 
     border: 1px solid rgba(255, 255, 255, 0.05); 
 }
-.tech-icons { display: flex; justify-content: center; gap: 60px; margin-top: 40px; flex-wrap: wrap; }
-.tech-item { font-size: 70px; transition: all 0.4s; position: relative; cursor: pointer; }
-.tech-item:hover { transform: translateY(-10px) scale(1.1); filter: drop-shadow(0 10px 15px rgba(255,255,255,0.3)); }
+.tech-icons { display: flex; justify-content: center; gap: 50px; margin-top: 40px; flex-wrap: wrap; }
+.tech-item { font-size: 50px; transition: 0.3s; color: #94a3b8; }
+.tech-item:hover { transform: scale(1.1); color: white; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
 
-footer { text-align: center; padding: 40px 0; color: rgba(255, 255, 255, 0.4); font-size: 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 50px; }
-
-@media (max-width: 1200px) { .team-grid { flex-wrap: wrap; justify-content: center; } .team-member { flex: none; width: 45%; } }
-@media (max-width: 768px) { .nav-links { display: none; } .menu-toggle { display: flex; } .content-header h1 { font-size: 40px; } .about-container { padding-top: 120px; } .team-member { width: 100%; } }
+footer { text-align: center; padding: 40px 0; color: rgba(255, 255, 255, 0.3); font-size: 0.9rem; margin-top: 50px; }

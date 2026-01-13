@@ -1,112 +1,115 @@
-/* --- LƯU TẠI: assets/css/pages/blinkgame.css --- */
+/* assets/css/pages/blinkgame.css */
 
-/* 1. LAYOUT CHÍNH (Đã chỉnh thấp xuống) */
+/* 1. CẤU HÌNH NỀN VÀ KHUNG BAO (Quan trọng) */
+body {
+    /* Thêm Gradient nền giống các trang khác vì trang này không dùng class .hero */
+    background: linear-gradient(135deg, #0a2647 0%, #1a4d7a 50%, #2c7da0 100%);
+    min-height: 100vh;
+    /* Đẩy nội dung xuống để không bị Navbar che */
+    padding-top: 100px; 
+}
+
+/* 2. LAYOUT CHÍNH */
 .game-wrapper {
     position: relative; 
     z-index: 10;
     width: 95%; 
     max-width: 1400px;
-    
-    /* [THAY ĐỔI Ở ĐÂY] */
-    /* Cũ: margin: 40px auto; hoặc 80px auto... */
-    /* Mới: Tăng số đầu tiên lên (ví dụ 120px hoặc 150px) để đẩy xuống thấp hơn */
-    margin: 130px auto 50px auto; 
+    margin: 40px auto; /* Margin chuẩn */
     
     display: flex; 
-    flex-direction: row; 
+    justify-content: center; /* Căn giữa màn hình */
     align-items: flex-start;
-    gap: 60px; 
-    min-height: 85vh;
+    min-height: 80vh;
 }
 
-.game-main-container { flex: 3; width: 100%; display: flex; justify-content: center; }
+.game-main-container { 
+    width: 100%; 
+    max-width: 900px; /* Giới hạn chiều rộng để game không bị bè ra */
+    display: flex; 
+    justify-content: center; 
+}
 
-/* 2. GAME CARD */
+/* 3. GAME CARD (Khung chứa game) */
 .game-card {
-    position: relative; width: 100%;
+    position: relative; 
+    width: 100%;
+    /* Nền kính mờ sẫm màu */
     background: rgba(13, 25, 48, 0.85);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 30px; padding: 50px;
+    border-radius: 30px; 
+    padding: 50px;
     box-shadow: 0 0 60px rgba(0,0,0,0.6);
-    text-align: center; color: white;
+    text-align: center; 
+    color: white;
+    
+    /* Hiệu ứng hiện ra */
     animation: fadeIn 0.5s ease-out;
-    overflow: hidden;
 }
 
-/* 3. GAME AREA */
-.game-area {
-    position: relative; height: 550px;
-    background: radial-gradient(circle at center, rgba(30, 58, 138, 0.3) 0%, rgba(10, 20, 40, 0.6) 100%);
-    border: 2px solid #012c46; border-radius: 24px; margin: 30px 0;
-    overflow: hidden; box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.6);
+/* Nút thoát */
+.exit-btn {
+    position: absolute; top: 25px; right: 25px;
+    color: rgba(255,255,255,0.3); text-decoration: none;
+    font-size: 1.5rem; transition: 0.3s;
+    width: 40px; height: 40px; line-height: 40px; border-radius: 50%;
 }
-.word-container {
-    position: absolute; font-size: 3.5rem; font-weight: 800; color: white;
-    white-space: nowrap; text-shadow: 0 0 25px rgba(255,255,255,0.4);
-    font-family: 'Roboto Mono', monospace; z-index: 100;
-    padding: 10px; pointer-events: none;
+.exit-btn:hover { background: rgba(255,255,255,0.1); color: white; transform: rotate(90deg); }
+
+/* Tiêu đề & Nội dung */
+.game-title { 
+    font-size: 3.5rem; margin-bottom: 20px; 
+    background: linear-gradient(to right, #4ade80, #22c55e);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    font-weight: 800; letter-spacing: -2px;
 }
-.word-container span.typed { color: #4ade80; text-shadow: 0 0 20px #4ade80; }
+.game-desc { color: #94a3b8; font-size: 1.2rem; margin-bottom: 40px; }
 
-/* 4. HUD */
-.hud-overlay { position: absolute; top: 25px; left: 30px; right: 30px; display: flex; justify-content: space-between; align-items: center; z-index: 50; pointer-events: none; }
-.hud-item { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(10px); padding: 10px 25px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); color: white; font-weight: bold; pointer-events: auto; }
-.score-container i { color: #facc15; font-size: 1.4rem; }
-#scoreDisplay { font-size: 2rem; font-family: 'Roboto Mono', monospace; line-height: 1; }
-.lives-container i { font-size: 1.8rem; margin: 0 3px; }
-.heart-filled { color: #ef4444; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.8)); animation: heartbeat 1.5s infinite; }
-.heart-empty { color: rgba(255,255,255,0.15); }
-
-/* 5. NÚT QUIT GAME (FIX LỖI) */
-/* Đẩy nút ra ngoài và căn giữa đẹp hơn */
-.quit-btn {
-    margin-top: 25px;
-    background: rgba(239, 68, 68, 0.15); 
-    border: 1px solid #ef4444; color: #f87171;
-    padding: 12px 40px; border-radius: 30px;
-    cursor: pointer; font-weight: bold; font-size: 1.1rem;
-    transition: 0.3s;
-    pointer-events: auto; /* Bắt buộc để bấm được */
-    z-index: 100; /* Nổi lên trên cùng */
-    position: relative; /* Để z-index hoạt động */
+/* 4. LEVEL BUTTONS (Các nút chọn độ khó) */
+.levels-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.level-btn {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 30px; cursor: pointer; transition: all 0.3s;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
 }
-.quit-btn:hover { background: #ef4444; color: white; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3); }
+.level-btn:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.08); }
+.level-btn .icon { font-size: 2.5rem; margin-bottom: 10px; }
+.level-btn h3 { font-size: 1.5rem; margin: 0; }
+.level-btn p { font-size: 0.9rem; color: #64748b; margin: 0; }
 
-/* ... (Các phần khác như Leaderboard, Game Over giữ nguyên) ... */
-.leaderboard-sidebar { flex: 1; min-width: 350px; background: rgba(10, 38, 71, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 30px; height: fit-content; }
-.lb-header { font-size: 1.6rem; font-weight: 800; color: #facc15; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
-.lb-list { display: flex; flex-direction: column; gap: 15px; }
-.lb-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
-.lb-rank { font-weight: 900; color: #64748b; width: 30px; text-align: center; }
-.lb-avatar { width: 42px; height: 42px; background: #334155; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-.lb-info { flex: 1; text-align: left; }
-.lb-name { font-weight: 700; font-size: 1rem; color: #e2e8f0; }
-.lb-score { font-size: 0.9rem; color: #4ade80; font-family: 'Roboto Mono', monospace; }
-.lb-item.rank-1 { background: linear-gradient(90deg, rgba(234, 179, 8, 0.1), transparent); border: 1px solid rgba(234, 179, 8, 0.3); }
-.lb-item.rank-1 .lb-rank { color: #facc15; }
-.lb-item.current-user { margin-top: 10px; background: rgba(56, 189, 248, 0.1); border: 1px solid #38bdf8; }
+/* Màu riêng cho từng level */
+.level-btn.green:hover { box-shadow: 0 10px 30px rgba(74, 222, 128, 0.2); border-color: #4ade80; }
+.level-btn.yellow:hover { box-shadow: 0 10px 30px rgba(250, 204, 21, 0.2); border-color: #facc15; }
+.level-btn.red:hover { box-shadow: 0 10px 30px rgba(248, 113, 113, 0.2); border-color: #f87171; }
 
-.game-title { font-size: 4.5rem; font-weight: 900; background: linear-gradient(to bottom, #ffffff 30%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.5)); letter-spacing: -2px; }
-.game-desc { font-size: 1.2rem; color: #94a3b8; margin-bottom: 50px; }
-.levels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 40px; }
-.level-btn { background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 40px 20px; cursor: pointer; color: white; transition: 0.3s; position: relative; overflow: hidden; z-index: 100 !important; pointer-events: auto !important; }
-.level-btn:hover { transform: translateY(-10px); }
-.level-btn h3 { font-size: 1.8rem; margin: 15px 0 5px; }
-.level-btn .icon { font-size: 3rem; }
-.level-btn.green:hover { border-color: #4ade80; background: rgba(74, 222, 128, 0.05); }
-.level-btn.yellow:hover { border-color: #facc15; background: rgba(250, 204, 21, 0.05); }
-.level-btn.red:hover { border-color: #f87171; background: rgba(248, 113, 113, 0.05); }
+/* 5. KHU VỰC CHƠI GAME */
+.game-area { min-height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
 
+/* Điểm số & Mạng */
+.hud-overlay { 
+    position: absolute; top: 0; width: 100%; 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.score-container { font-size: 2rem; font-weight: 800; color: white; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+.lives-container { font-size: 1.5rem; color: #ef4444; display: flex; gap: 5px; }
+.heart-filled { animation: beat 1s infinite; }
+.heart-empty { color: rgba(255,255,255,0.1); }
+
+/* Chữ hiển thị */
+.word-container { font-size: 4.5rem; font-weight: 700; letter-spacing: 2px; color: white; margin: 40px 0; text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.char-correct { color: #4ade80; text-shadow: 0 0 15px #4ade80; }
+.char-wrong { color: #ef4444; text-decoration: underline; }
+
+/* 6. GAME OVER & TIỆN ÍCH */
 .hidden { display: none !important; }
-.exit-btn { position: absolute; top: 30px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.05); color: #94a3b8; display: flex; align-items: center; justify-content: center; text-decoration: none; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; z-index: 50; }
-.exit-btn:hover { background: rgba(239,68,68,0.2); color: #ef4444; border-color: #ef4444; transform: rotate(90deg); }
-.feedback { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; font-weight: 900; z-index: 20; text-shadow: 0 10px 30px rgba(0,0,0,0.8); pointer-events: none; }
-.feedback.success { color: #4ade80; animation: popInSuccess 0.4s forwards; } .feedback.timeout { color: #f87171; animation: shakeError 0.4s; }
-.game-over-title { font-size: 5rem; font-weight: 900; color: #fff; margin-bottom: 20px; text-shadow: 0 0 40px rgba(239, 68, 68, 0.8); }
-.final-stats { display: flex; gap: 30px; justify-content: center; margin-bottom: 50px; }
-.stat-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 20px 40px; border-radius: 20px; min-width: 200px; }
-.stat-box span { display: block; color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 5px; }
+.quit-btn { 
+    margin-top: 30px; background: transparent; border: 1px solid rgba(255,255,255,0.2); 
+    color: #94a3b8; padding: 10px 25px; border-radius: 30px; cursor: pointer; transition: 0.3s; 
+}
+.quit-btn:hover { background: rgba(255,255,255,0.1); color: white; border-color: white; }
+
 .highlight-score { font-size: 4rem; font-weight: 800; color: #4ade80; margin: 0; }
 .action-buttons { display: flex; gap: 20px; justify-content: center; }
 .cta-button { padding: 18px 50px; font-size: 1.3rem; border-radius: 50px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; cursor: pointer; font-weight: 800; transition: 0.3s; }
@@ -115,8 +118,4 @@
 .cta-button.ghost:hover { border-color: white; color: white; background: rgba(255,255,255,0.1); }
 
 @keyframes fadeIn { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
-@keyframes popInSuccess { 0% {transform:translate(-50%,-50%) scale(0.5); opacity:0;} 60% {transform:translate(-50%,-50%) scale(1.3); opacity:1;} 100% {transform:translate(-50%,-50%) scale(1); opacity:0;} }
-@keyframes shakeError { 0%,100% {transform:translate(-50%,-50%);} 25% {transform:translate(-60%,-50%);} 75% {transform:translate(-40%,-50%);} }
-@keyframes heartbeat { 0%,100% {transform:scale(1);} 15% {transform:scale(1.2);} 30% {transform:scale(1);} }
-
-@media (max-width: 1200px) { .game-wrapper { flex-direction: column; gap: 50px; } .leaderboard-sidebar { width: 100%; order: 2; } .game-main-container { order: 1; } }
+@keyframes beat { 0%, 100% {transform: scale(1);} 50% {transform: scale(1.2);} }

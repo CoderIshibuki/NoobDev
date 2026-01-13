@@ -1,147 +1,79 @@
-const translations = {
-    en: {
-        navHome: "Home", navAbout: "About", navTips: "Tips", navFAQ: "FAQ", navTyping: "Typing",
-        navLanguage: "Language", navLogin: "Login",
-        pageTitle: "How to type faster - 12 Tips",
-        pageSubtitle: "These are some tips for you to improve typing",
-        tocTitle: "Table of contents"
-    },
-    vi: {
-        navHome: "Trang chủ", navAbout: "Giới thiệu", navTips: "Mẹo", navFAQ: "Hỏi đáp", navTyping: "Gõ phím",
-        navLanguage: "Ngôn ngữ", navLogin: "Đăng nhập",
-        pageTitle: "Làm thế nào để gõ nhanh - 12 mẹo",
-        pageSubtitle: "Dưới đây là 1 số mẹo cho bạn cải thiện gõ phím",
-        tocTitle: "Mục lục"
-    }
-};
+/* assets/js/pages/tips.js */
 
 document.addEventListener('DOMContentLoaded', () => {
-    initStars();
-    initMobileMenu();
-    initLanguage();
+    // 1. Chạy hàm tạo sao
+    createStarsDirectly();
+    
+    // 2. Chạy logic cuộn trang
     initSmoothScrollAndHighlight();
 });
 
-// --- 1. STAR GENERATION ---
-function initStars() {
+// --- HÀM TẠO SAO TRỰC TIẾP ---
+function createStarsDirectly() {
     const container = document.getElementById('starsContainer');
-    if(container) {
-        // TĂNG SỐ LƯỢNG SAO LÊN 600
-        for(let i=0; i< 600; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            const size = Math.random() * 2.5 + 1;
-            star.style.width = size + 'px';
-            star.style.height = size + 'px';
-            star.style.animationDelay = Math.random() * 4 + 's';
-            star.style.opacity = Math.random() * 0.7 + 0.3;
-            container.appendChild(star);
-        }
-    }
-}
-
-// --- 2. MOBILE MENU ---
-function initMobileMenu() {
-    const menuToggle = document.getElementById('menuToggle');
-    const sideMenu = document.getElementById('sideMenu');
-    if(menuToggle && sideMenu) {
-        menuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            sideMenu.classList.toggle('active');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!sideMenu.contains(e.target) && !menuToggle.contains(e.target) && sideMenu.classList.contains('active')) {
-                sideMenu.classList.remove('active');
-            }
-        });
-    }
-}
-
-// --- 3. LANGUAGE & TRANSLATION ---
-function initLanguage() {
-    const btn = document.getElementById('languageBtn');
-    const dropdown = document.querySelector('.language-dropdown');
-    const menu = document.getElementById('languageMenu');
     
-    // Lấy ngôn ngữ từ localStorage hoặc mặc định là 'en'
-    let currentLang = localStorage.getItem('language') || 'en';
-    applyTranslation(currentLang);
-    updateActiveLang(currentLang);
+    // Kiểm tra xem tìm thấy thẻ chứa sao không
+    if(!container) {
+        console.error("❌ Lỗi: Không tìm thấy id='starsContainer' trong file HTML");
+        return;
+    }
 
-    // Toggle Dropdown
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdown.classList.toggle('active');
-    });
+    console.log("✨ Đang tạo sao...");
+    container.innerHTML = ''; // Xóa sao cũ nếu có
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', () => {
-        dropdown.classList.remove('active');
-    });
+    // Tăng số lượng sao lên 400
+    const starCount = 400; 
 
-    // Handle Language Selection
-    document.querySelectorAll('.language-option').forEach(opt => {
-        opt.addEventListener('click', (e) => {
-            e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài làm đóng dropdown ngay lập tức
-            const lang = opt.getAttribute('data-lang');
-            currentLang = lang;
-            localStorage.setItem('language', lang);
-            applyTranslation(lang);
-            updateActiveLang(lang);
-            dropdown.classList.remove('active'); // Đóng sau khi chọn
-        });
-    });
+    for(let i=0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        
+        // Random vị trí
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        // Random kích thước (lớn hơn chút để dễ nhìn)
+        const size = Math.random() * 3 + 1; 
+        // Random độ trễ lấp lánh
+        const delay = Math.random() * 4;
+
+        star.style.left = x + '%';
+        star.style.top = y + '%';
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.animationDelay = delay + 's';
+        
+        // Random độ mờ để tự nhiên hơn
+        star.style.opacity = Math.random() * 0.7 + 0.3;
+
+        container.appendChild(star);
+    }
 }
 
-function applyTranslation(lang) {
-    document.querySelectorAll('[data-translate]').forEach(el => {
-        const key = el.getAttribute('data-translate');
-        if(translations[lang][key]) {
-            el.innerText = translations[lang][key];
-        }
-    });
-}
-
-function updateActiveLang(lang) {
-    document.querySelectorAll('.language-option').forEach(opt => {
-        opt.classList.remove('active');
-        if(opt.getAttribute('data-lang') === lang) {
-            opt.classList.add('active');
-        }
-    });
-}
-
-// --- 4. SCROLL AND HIGHLIGHT LOGIC ---
+// --- LOGIC CUỘN TRANG (GIỮ NGUYÊN) ---
 function initSmoothScrollAndHighlight() {
-    document.querySelectorAll('.faq-toc a').forEach(anchor => {
+    const tocLinks = document.querySelectorAll('.faq-toc a');
+    
+    tocLinks.forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            
             const targetId = this.getAttribute('href');
             const targetElement = document.querySelector(targetId);
             
             if (targetElement) {
-                // Tính toán vị trí cuộn: vị trí element + scroll hiện tại - offset cho header
-                // 140px là khoảng offset an toàn để không bị header che mất tiêu đề
-                const headerOffset = 140; 
+                const headerOffset = 100; 
                 const elementPosition = targetElement.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.scrollY - headerOffset;
 
-                // Thực hiện cuộn mượt
                 window.scrollTo({
                     top: offsetPosition,
                     behavior: "smooth"
                 });
 
-                // Xử lý highlight
-                // 1. Xóa class active-highlight ở tất cả các card khác
                 document.querySelectorAll('.faq-card').forEach(card => card.classList.remove('active-highlight'));
-                
-                // 2. Thêm class active-highlight vào card được chọn
                 targetElement.classList.add('active-highlight');
+                
+                tocLinks.forEach(l => l.classList.remove('active-link'));
+                this.classList.add('active-link');
             }
         });
     });
