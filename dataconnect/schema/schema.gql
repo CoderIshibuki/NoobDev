@@ -1,0 +1,46 @@
+type User @table {
+  username: String!
+  email: String!
+  createdAt: Timestamp!
+  displayName: String
+  photoUrl: String
+}
+
+type TypingPassage @table {
+  content: String!
+  length: Int!
+  category: String!
+  createdAt: Timestamp!
+  source: String
+  author: String
+}
+
+type TypingTest @table {
+  user: User
+  passage: TypingPassage
+  wpm: Float!
+  accuracy: Float!
+  duration: Int!
+  startTime: Timestamp!
+  endTime: Timestamp!
+  createdAt: Timestamp!
+}
+
+type Challenge @table {
+  creator: User
+  name: String!
+  type: String!
+  passage: TypingPassage
+  createdAt: Timestamp!
+  endsAt: Timestamp!
+  description: String
+  # invitedUsers: [User] # Not supported.
+}
+
+type LeaderboardEntry @table {
+  user: User
+  challenge: Challenge
+  wpm: Float!
+  accuracy: Float!
+  createdAt: Timestamp!
+}

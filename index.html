@@ -97,6 +97,91 @@
             .hero-subtitle { font-size: 1rem; }
             .cta-button { padding: 15px 30px; font-size: 1rem; }
         }
+
+        /* assets/css/style.css - GLOBAL STYLES */
+
+        /* 1. CORE & RESET */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 100px; /* Tránh việc click mục lục bị Navbar che */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow-x: hidden;
+            /* MÀU CHUẨN ĐỒNG BỘ: Xanh đen đậm */
+            background: #0a2647; 
+            color: white;
+            line-height: 1.6;
+            font-size: 20px;
+        }
+
+        /* 2. HERO & BACKGROUND (Dùng chung cho mọi trang) */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a2647 );
+            position: relative;
+            /* QUAN TRỌNG: Padding-top lớn hơn chiều cao Navbar (khoảng 80px) để không bị che chữ */
+            padding-top: 120px; 
+            padding-bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 3. NAVBAR (Đưa từ about.css sang đây để dùng chung) */
+        nav { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 5%; 
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; 
+            background: rgba(10, 38, 71, 0.85); /* Màu nền tối có độ trong suốt */
+            backdrop-filter: blur(15px); 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+            height: 80px; /* Chiều cao cố định để tính toán padding */
+        }
+
+        .nav-left { display: flex; align-items: center; gap: 25px; }
+        .logo { font-size: 28px; font-weight: 700; color: white; letter-spacing: -0.5px; }
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        .nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 16px; font-weight: 500; transition: all 0.3s ease; position: relative; }
+        .nav-links a.active, .nav-links a:hover { color: #5babe8; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: #5babe8; transition: width 0.3s ease; }
+        .nav-links a.active::after, .nav-links a:hover::after { width: 100%; }
+
+        /* Nút Login trên Navbar */
+        .login-btn { background: linear-gradient(135deg, #4a8dbf, #2c7da0); color: white !important; padding: 10px 25px; border-radius: 25px; font-weight: 600; border: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(74, 141, 191, 0.3); }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(74, 141, 191, 0.4); }
+
+        /* User Dropdown & Language (Dùng chung) */
+        .user-profile-nav { cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 5px 15px; background: rgba(255,255,255,0.1); border-radius: 20px; transition: 0.3s; }
+        .user-profile-nav:hover { background: rgba(255,255,255,0.2); }
+        .user-avatar-circle { width: 32px; height: 32px; border-radius: 50%; background: #4ade80; color: #022c22; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .profile-dropdown-nav { position: absolute; top: 100%; right: 0; background: white; border-radius: 10px; width: 200px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: none; flex-direction: column; gap: 5px; margin-top: 10px; }
+        .user-profile-nav.active .profile-dropdown-nav { display: flex; }
+        .profile-dropdown-nav a { color: #0f172a; padding: 10px; border-radius: 5px; text-decoration: none; display: block; }
+        .profile-dropdown-nav a:hover { background: #f1f5f9; color: #3b82f6; }
+        .divider { height: 1px; background: #e2e8f0; margin: 5px 0; }
+
+        /* 4. ANIMATIONS (Sao, Trăng, Mây - Dùng chung) */
+        .stars { position: fixed; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 0; }
+        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 4s infinite; }
+        .moon { position: absolute; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #f0f8ff, #d4e8f5); box-shadow: 0 0 60px rgba(255,255,255,0.4); top: 100px; right: 5%; animation: float 6s infinite; z-index: 0; filter: blur(1px); }
+        .clouds { position: absolute; bottom: 0; width: 100%; height: 200px; overflow: hidden; z-index: 1; pointer-events: none; filter: blur(3px); }
+        .cloud { position: absolute; background: white; border-radius: 100px; opacity: 0.8; }
+        .cloud1 { width:150px; height:60px; bottom:20px; left:5%; animation: drift 20s linear infinite; }
+        .cloud2 { width:180px; height:70px; bottom:50px; left:30%; animation: drift 25s linear infinite; }
+        .cloud3 { width:120px; height:50px; bottom:30px; right:10%; animation: drift 30s linear infinite; }
+
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes drift { from { transform: translateX(-100px); } to { transform: translateX(calc(100vw + 100px)); } }
+
+        /* Mobile Toggle */
+        .menu-toggle { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+        .menu-toggle span { width: 25px; height: 3px; background: white; }
+        @media (max-width: 768px) { .nav-links { display: none; } .menu-toggle { display: flex; } }
     </style>
 </head>
 <body>

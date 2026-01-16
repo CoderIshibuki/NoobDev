@@ -1,0 +1,68 @@
+mutation SeedDatabase @transaction @auth(level: NO_ACCESS) {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      username: "demouser1",
+      email: "demouser1@example.com",
+      createdAt: "2024-04-24T12:00:00Z"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      username: "demouser2",
+      email: "demouser2@example.com",
+      createdAt: "2024-04-24T13:00:00Z"
+    }
+  ])
+  typingPassage_insertMany(data: [
+    {
+      id: "650e8400-e29b-41d4-a716-446655440000",
+      category: "technology",
+      content: "The quick brown fox jumps over the lazy dog.",
+      createdAt: "2024-04-24T14:00:00Z",
+      length: 43
+    },
+    {
+      id: "650e8400-e29b-41d4-a716-446655440001",
+      category: "literature",
+      content: "To be or not to be, that is the question.",
+      createdAt: "2024-04-24T15:00:00Z",
+      length: 42
+    }
+  ])
+  challenge_insertMany(data: [
+    {
+      id: "750e8400-e29b-41d4-a716-446655440000",
+      creatorId: "550e8400-e29b-41d4-a716-446655440000",
+      passageId: "650e8400-e29b-41d4-a716-446655440000",
+      createdAt: "2024-04-24T16:00:00Z",
+      endsAt: "2024-04-25T16:00:00Z",
+      name: "Tech Challenge",
+      type: "timed"
+    },
+    {
+      id: "750e8400-e29b-41d4-a716-446655440001",
+      creatorId: "550e8400-e29b-41d4-a716-446655440001",
+      passageId: "650e8400-e29b-41d4-a716-446655440001",
+      createdAt: "2024-04-24T17:00:00Z",
+      endsAt: "2024-04-25T17:00:00Z",
+      name: "Lit Challenge",
+      type: "endurance"
+    }
+  ])
+  leaderboardEntry_insertMany(data: [
+    {
+      challengeId: "750e8400-e29b-41d4-a716-446655440000",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      accuracy: 95.5,
+      createdAt: "2024-04-24T18:00:00Z",
+      wpm: 60.0
+    },
+    {
+      challengeId: "750e8400-e29b-41d4-a716-446655440001",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      accuracy: 98.2,
+      createdAt: "2024-04-24T19:00:00Z",
+      wpm: 45.0
+    }
+  ])
+}

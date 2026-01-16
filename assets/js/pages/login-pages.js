@@ -3,32 +3,100 @@ import {
     loginUser, 
     registerUser, 
     loginWithSocial, 
-    signUpWithSocial 
+    signUpWithSocial,
+    resetPassword // <--- Import hàm này
 } from '../firebase/auth.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- HIỆU ỨNG SAO NỀN (Giữ nguyên của bạn) ---
     createStarsDirectly();
 
     // ==========================================
-    // 1. XỬ LÝ FORM ĐĂNG NHẬP (EMAIL/PASS)
+    // 0. XỬ LÝ CHUYỂN TAB QUÊN MẬT KHẨU
     // ==========================================
+    const forgotLink = document.getElementById('forgotPassLink');
+    const backLink = document.getElementById('backToLoginLink');
     const loginForm = document.getElementById('loginForm');
+    const resetForm = document.getElementById('resetForm');
+    const authTabs = document.getElementById('authTabs');
+
+    // Chuyển sang Reset Password
+    if (forgotLink) {
+        forgotLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.remove('active');
+            authTabs.style.display = 'none'; // Ẩn tab Login/Signup cho đỡ rối
+            resetForm.classList.add('active');
+        });
+    }
+
+    // Quay lại Login
+    if (backLink) {
+        backLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetForm.classList.remove('active');
+            authTabs.style.display = 'flex'; // Hiện lại tab
+            loginForm.classList.add('active');
+        });
+    }
+
+    // ==========================================
+    // 1. XỬ LÝ RESET PASSWORD (MỚI)
+    // ==========================================
+    if (resetForm) {
+        resetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const emailInp = resetForm.querySelector('input[type="email"]');
+            const btn = resetForm.querySelector('button');
+            const originalText = btn.innerText;
+
+            if (!emailInp.value) {
+                alert("Vui lòng nhập email!");
+                return;
+            }
+
+            btn.innerText = "Đang gửi...";
+            btn.disabled = true;
+
+            const result = await resetPassword(emailInp.value);
+
+            alert(result.message);
+            
+            btn.innerText = originalText;
+            btn.disabled = false;
+
+            if (result.success) {
+                // Thành công thì quay về trang Login cho user đăng nhập
+                backLink.click();
+            }
+        });
+    }
+
+    // ==========================================
+    // 2. XỬ LÝ FORM ĐĂNG NHẬP
+    // ==========================================
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = loginForm.querySelector('input[type="email"]').value;
-            const pass = loginForm.querySelector('input[type="password"]').value;
+            
+            const emailInp = loginForm.querySelector('input[type="email"]');
+            const passInp = loginForm.querySelector('input[type="password"]');
             const btn = loginForm.querySelector('button');
             const originalText = btn.innerText;
 
-            btn.innerText = "Checking...";
+            if (!emailInp.value || !passInp.value) {
+                alert("Vui lòng điền đầy đủ thông tin!");
+                return;
+            }
+
+            btn.innerText = "Đang kiểm tra...";
             btn.disabled = true;
 
-            const result = await loginUser(email, pass);
+            const result = await loginUser(emailInp.value, passInp.value);
+            
             if (result.success) {
-                window.location.href = "dashboard.html";
+                localStorage.setItem('isLoggedIn', 'true'); 
+                window.location.href = "index.html";
             } else {
                 alert(result.message);
                 btn.innerText = originalText;
@@ -38,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 2. XỬ LÝ FORM ĐĂNG KÝ (EMAIL/PASS)
+    // 3. XỬ LÝ FORM ĐĂNG KÝ
     // ==========================================
     const signupForm = document.getElementById('signupForm');
     if (signupForm) {
@@ -51,13 +119,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = signupForm.querySelector('button');
             const originalText = btn.innerText;
 
-            btn.innerText = "Creating...";
+            if (!name || !email || !pass) {
+                alert("Vui lòng điền đầy đủ thông tin!");
+                return;
+            }
+
+            btn.innerText = "Đang tạo...";
             btn.disabled = true;
 
             const result = await registerUser(name, email, pass);
+            
             if (result.success) {
-                alert("Tạo tài khoản thành công! Đang chuyển hướng...");
-                window.location.href = "dashboard.html";
+                alert("Tạo tài khoản thành công! Đang đăng nhập...");
+                localStorage.setItem('isLoggedIn', 'true');
+                window.location.href = "index.html";
             } else {
                 alert(result.message);
                 btn.innerText = originalText;
@@ -67,31 +142,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 3. XỬ LÝ SOCIAL BUTTONS (QUAN TRỌNG)
+    // 4. XỬ LÝ SOCIAL BUTTONS
     // ==========================================
-
-    // --- NHÓM LOGIN (Khắt khe) ---
     setupSocialBtn('login-google', 'google', 'login');
     setupSocialBtn('login-fb', 'facebook', 'login');
     setupSocialBtn('login-github', 'github', 'login');
-
-    // --- NHÓM SIGNUP (Thoải mái) ---
     setupSocialBtn('signup-google', 'google', 'signup');
     setupSocialBtn('signup-fb', 'facebook', 'signup');
     setupSocialBtn('signup-github', 'github', 'signup');
-
 });
 
-// Hàm gắn sự kiện chung cho gọn code
+// Hàm gắn sự kiện chung
 function setupSocialBtn(elementId, socialType, mode) {
     const btn = document.getElementById(elementId);
-    if (!btn) return; // Nếu không tìm thấy nút thì bỏ qua
+    if (!btn) return;
 
     btn.addEventListener('click', async (e) => {
         e.preventDefault();
-        
-        // Hiệu ứng nút bấm (optional)
+        const originalOpacity = btn.style.opacity || "1";
         btn.style.opacity = "0.5";
+        btn.style.pointerEvents = "none";
         
         let result;
         if (mode === 'login') {
@@ -100,20 +170,18 @@ function setupSocialBtn(elementId, socialType, mode) {
             result = await signUpWithSocial(socialType);
         }
 
-        btn.style.opacity = "1"; // Trả lại độ sáng
+        btn.style.opacity = originalOpacity;
+        btn.style.pointerEvents = "auto";
 
         if (result.success) {
-            // Thành công -> Vào Dashboard
-            if(result.message) alert(result.message);
-            window.location.href = "dashboard.html";
+            localStorage.setItem('isLoggedIn', 'true');
+            window.location.href = "index.html";
         } else {
-            // Thất bại -> Hiện lỗi
-            alert("Lỗi: " + result.message);
+            alert(result.message);
         }
     });
 }
 
-// Hàm tạo sao (Copy lại để đảm bảo không mất background)
 function createStarsDirectly() {
     const container = document.getElementById('starsContainer');
     if(!container) return;

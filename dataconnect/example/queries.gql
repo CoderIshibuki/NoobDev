@@ -1,0 +1,29 @@
+mutation CreateTypingTest($passageId: UUID!, $userId: UUID!, $accuracy: Float!, $duration: Int!, $endTime: Timestamp!, $startTime: Timestamp!, $wpm: Float!) @auth(level: USER) {
+  typingTest_insert(data: {passageId: $passageId, userId: $userId, accuracy: $accuracy, duration: $duration, endTime: $endTime, startTime: $startTime, wpm: $wpm})
+}
+
+query GetTypingTestsByUser($userId: UUID!) @auth(level: USER) {
+  typingTests(where: {userId: {eq: $userId}}) {
+    id
+    passageId
+    accuracy
+    wpm
+    duration
+    startTime
+    endTime
+  }
+}
+
+mutation CreateChallenge($passageId: UUID!, $name: String!, $description: String!, $endsAt: Timestamp!, $type: String!) @auth(level: USER) {
+  challenge_insert(data: {passageId: $passageId, creatorId_expr: "auth.uid", name: $name, description: $description, endsAt: $endsAt, type: $type})
+}
+
+query ListChallenges @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  challenges {
+    id
+    name
+    description
+    endsAt
+    type
+  }
+}

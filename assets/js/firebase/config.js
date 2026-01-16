@@ -1,11 +1,9 @@
-
-// Import các thư viện từ CDN (Không cần cài đặt gì cả)
+// assets/js/firebase/config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ⚠️ QUAN TRỌNG: Bạn phải thay thế các dòng bên dưới bằng thông tin của bạn
-// Cách lấy: Vào Firebase Console -> Project Settings -> Kéo xuống dưới cùng chọn Web App (</>)
+// Cấu hình Firebase của bạn
 const firebaseConfig = {
   apiKey: "AIzaSyCJ7mbwYLGEBp6_v32aTftiGMFzhXqINVI",
   authDomain: "noobdev-ebc39.firebaseapp.com",
@@ -16,11 +14,11 @@ const firebaseConfig = {
   measurementId: "G-4B8FQ4B3FB"
 };
 
-// Khởi tạo kết nối 1 lần duy nhất
+// Khởi tạo Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-console.log("🔥 Firebase đã được kết nối!");
+console.log("🔥 Firebase Connected!");
 
 export { auth, db };
