@@ -82,3 +82,150 @@ nav {
 .menu-toggle { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
 .menu-toggle span { width: 25px; height: 3px; background: white; }
 @media (max-width: 768px) { .nav-links { display: none; } .menu-toggle { display: flex; } }
+
+/* --- NAVBAR USER PROFILE (NEW) --- */
+
+/* 1. Container cho phần User */
+.auth-wrapper {
+    margin-left: 20px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* 2. Nút User (Dạng viên thuốc kính mờ) */
+.user-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.08); /* Nền kính tối */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 15px 6px 20px; /* Padding trái lớn hơn để chứa tên */
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #e2e8f0;
+    font-family: inherit;
+}
+
+.user-menu-btn:hover, .user-menu-btn.active {
+    background: rgba(56, 189, 248, 0.15); /* Hover màu xanh sáng */
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+}
+
+/* Tên User */
+.nav-username {
+    font-weight: 600;
+    font-size: 0.95rem;
+    max-width: 100px; /* Giới hạn độ dài tên */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Mũi tên nhỏ */
+.arrow-icon {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    transition: 0.3s;
+}
+.user-menu-btn.active .arrow-icon { transform: rotate(180deg); }
+
+/* 3. Avatar (Ảnh hoặc Chữ) */
+.nav-avatar-img {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #38bdf8;
+}
+
+.nav-avatar-text {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold;
+    font-size: 1rem;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+/* 4. Dropdown Menu (Glass Effect) */
+.user-dropdown {
+    position: absolute;
+    top: 120%; /* Cách nút một chút */
+    right: 0;
+    width: 220px;
+    background: rgba(15, 23, 42, 0.95); /* Nền rất tối */
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 10px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    
+    /* Ẩn mặc định */
+    opacity: 0; visibility: hidden; transform: translateY(-10px);
+    transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    z-index: 1000;
+}
+
+.user-dropdown.show {
+    opacity: 1; visibility: visible; transform: translateY(0);
+}
+
+/* Dropdown Content */
+.dropdown-header {
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 5px;
+}
+.greeting { display: block; font-size: 0.75rem; color: #94a3b8; }
+.email { display: block; font-size: 0.85rem; color: #fff; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+
+.dropdown-links a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 15px;
+    color: #cbd5e1;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+
+.dropdown-links a:hover {
+    background: rgba(255,255,255,0.05);
+    color: white;
+}
+
+.dropdown-links a i { width: 16px; text-align: center; color: #38bdf8; }
+
+.divider { height: 1px; background: rgba(255,255,255,0.05); margin: 5px 0; }
+
+.logout-item { color: #f87171 !important; }
+.logout-item:hover { background: rgba(248, 113, 113, 0.1) !important; }
+.logout-item i { color: #f87171 !important; }
+
+/* 5. Nút Login (Nếu chưa đăng nhập) */
+.nav-login-btn {
+    background: #38bdf8;
+    color: #0f172a;
+    padding: 8px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+.nav-login-btn:hover {
+    background: #7dd3fc;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .nav-username { display: none; } /* Ẩn tên trên mobile cho gọn */
+    .user-menu-btn { padding: 5px; border-radius: 50%; border: none; background: transparent; }
+    .nav-avatar-img, .nav-avatar-text { width: 40px; height: 40px; }
+    .arrow-icon { display: none; }
+}

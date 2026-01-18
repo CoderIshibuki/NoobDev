@@ -1,0 +1,191 @@
+/* assets/css/pages/settings.css */
+
+/* --- 1. SETTINGS LAYOUT (Giống Tips Container) --- */
+.settings-page-wrapper {
+    width: 90%;
+    max-width: 800px; /* Settings cần hẹp hơn Tips để form đỡ bị bè */
+    margin: 0 auto;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    position: relative;
+    z-index: 10;
+}
+
+/* --- 2. HEADER TEXT (Copy từ .tips-header) --- */
+.settings-header {
+    text-align: center;
+    margin-bottom: 50px;
+    animation: fadeInDown 0.8s ease;
+}
+
+.settings-header h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    /* Gradient Xanh Dương sáng */
+    background: linear-gradient(to right, #fff, #38bdf8); 
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.3));
+}
+
+.settings-header p {
+    color: #cbd5e1;
+    font-size: 1.3rem;
+    font-weight: 300;
+}
+
+/* --- 3. MAIN CARD (Copy style từ .faq-card) --- */
+.settings-card {
+    background: rgba(30, 41, 59, 0.7); /* Nền xanh đen đậm */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+    border-color: rgba(56, 189, 248, 0.3); /* Viền sáng nhẹ khi hover */
+}
+
+/* --- 4. AVATAR SECTION --- */
+.avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 30px;
+}
+
+.avatar-wrapper {
+    position: relative;
+    width: 120px; height: 120px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.avatar-preview {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 4px solid rgba(56, 189, 248, 0.5); /* Viền xanh Tips */
+    overflow: hidden;
+    background: #1e293b;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.2);
+    transition: 0.3s;
+}
+
+.camera-icon {
+    position: absolute; bottom: 0; right: 0;
+    background: #38bdf8; color: #0f172a;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    border: 3px solid #0f172a;
+    transition: 0.2s;
+}
+.avatar-wrapper:hover .camera-icon { transform: scale(1.1); }
+.avatar-wrapper:hover .avatar-preview { border-color: #38bdf8; }
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.user-email-label { color: #94a3b8; font-size: 1rem; }
+
+/* --- 5. SECTION TITLES (Copy style từ .faq-toc h3) --- */
+.section-title {
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    margin-top: 10px;
+    color: #38bdf8; /* Màu xanh chủ đạo */
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex; align-items: center; gap: 10px;
+}
+
+/* --- 6. FORMS & INPUTS --- */
+.form-group { margin-bottom: 25px; }
+.form-group label { display: block; margin-bottom: 8px; color: #cbd5e1; font-size: 0.95rem; font-weight: 500; }
+
+.avatar-input-group { display: flex; gap: 10px; }
+
+/* Input Style */
+.input-wrapper { position: relative; }
+.input-wrapper input { 
+    width: 100%; 
+    padding: 14px 14px 14px 45px; 
+    border-radius: 10px; 
+    border: 1px solid rgba(255,255,255,0.1); 
+    background-color: rgba(15, 23, 42, 0.6) !important; /* Màu nền tối hơn card */
+    color: #fff !important; 
+    font-size: 1rem; 
+    transition: all 0.3s ease;
+}
+
+.input-wrapper input:focus { 
+    outline: none; 
+    border-color: #38bdf8; 
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    background-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+.input-wrapper i.icon-left { 
+    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: #94a3b8; pointer-events: none;
+}
+
+/* Buttons */
+.btn-upload {
+    padding: 0 20px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #cbd5e1; border-radius: 10px; cursor: pointer;
+    font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+}
+.btn-upload:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2); }
+
+.btn-group { display: flex; gap: 20px; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+.btn { padding: 15px; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; flex: 1; text-align: center; text-decoration: none; font-size: 1rem; }
+
+.btn-save { 
+    background: linear-gradient(135deg, #38bdf8, #2563eb); 
+    color: #fff; 
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); 
+}
+.btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(56, 189, 248, 0.4); }
+
+.btn-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; }
+.btn-cancel:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.3); }
+
+/* Preferences Items */
+.pref-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(15, 23, 42, 0.4); /* Nền tối hơn card */
+    padding: 20px; border-radius: 12px; margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.pref-info h4 { margin: 0 0 5px 0; color: #e2e8f0; font-size: 1rem; }
+.pref-info p { margin: 0; color: #64748b; font-size: 0.85rem; }
+
+/* Sliders & Toggles */
+input[type=range] { -webkit-appearance: none; width: 150px; height: 6px; background: #334155; border-radius: 5px; outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #38bdf8; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+
+.switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; border-radius: 34px; transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; transition: .4s; }
+input:checked + .slider { background-color: #38bdf8; }
+input:checked + .slider:before { transform: translateX(22px); }
+
+/* Messages */
+.msg { padding: 15px; margin-bottom: 25px; border-radius: 10px; text-align: center; display: none; font-size: 0.95rem; animation: fadeInDown 0.5s; }
+.success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.error { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+/* Animation */
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Footer */
+.settings-footer { text-align: center; margin-top: 40px; color: rgba(255,255,255,0.2); font-size: 0.85rem; }

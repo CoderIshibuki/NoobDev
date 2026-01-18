@@ -3,12 +3,15 @@ import { auth } from '../firebase/config.js';
 import { logoutUser } from '../firebase/auth.js';
 
 export function renderNavbar() {
-    // 1. Render HTML (Lưu ý các đường dẫn bắt đầu bằng dấu /)
+    // 1. Render khung HTML cơ bản
     const navHTML = `
         <div class="nav-left">
-            <button class="menu-toggle" id="menuToggle"><span></span><span></span><span></span></button>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
             <div class="logo">&lt;NoobDev/&gt;</div>
         </div>
+        
         <div class="nav-links">
             <a href="/index.html">Home</a>
             <a href="/pages/about.html">About</a>
@@ -16,7 +19,7 @@ export function renderNavbar() {
             <a href="/pages/faq.html">FAQ</a>
             <a href="/pages/typing.html">Typing</a>
             
-            <div id="auth-section" class="auth-section">
+            <div id="auth-section" class="auth-wrapper">
                 <div class="loading-spinner">...</div> 
             </div>
         </div>
@@ -25,7 +28,7 @@ export function renderNavbar() {
     const navElement = document.querySelector('nav');
     if (navElement) navElement.innerHTML = navHTML;
 
-    // 2. Logic Mobile Menu (Toggle)
+    // 2. Logic Mobile Menu
     const menuToggle = document.getElementById('menuToggle');
     const sideMenu = document.getElementById('sideMenu');
     if(menuToggle && sideMenu) {
@@ -40,58 +43,84 @@ export function renderNavbar() {
         });
     }
 
-    // 3. Lắng nghe trạng thái đăng nhập để đổi nút Login/Avatar
+    // 3. Xử lý User Login/Logout
     auth.onAuthStateChanged((user) => {
         const authDiv = document.getElementById('auth-section');
         if (!authDiv) return;
 
         if (user) {
-            // A. Đã đăng nhập: Hiện Avatar + Menu dropdown
-            // Lấy chữ cái đầu làm avatar nếu không có ảnh
-            const firstLetter = user.displayName ? user.displayName.charAt(0).toUpperCase() : "U";
-            // Avatar giả lập (nếu muốn làm upload ảnh thật cần logic Storage phức tạp hơn)
-            const avatarHtml = `<div class="user-avatar-circle">${firstLetter}</div>`;
+            // --- TRƯỜNG HỢP ĐÃ ĐĂNG NHẬP ---
+            
+            // 1. Xử lý Avatar: Ưu tiên ảnh upload -> sau đó đến chữ cái đầu
+            let avatarHTML = '';
+            if (user.photoURL) {
+                avatarHTML = `<img src="${user.photoURL}" alt="Avatar" class="nav-avatar-img">`;
+            } else {
+                const firstLetter = user.displayName ? user.displayName.charAt(0).toUpperCase() : "U";
+                avatarHTML = `<div class="nav-avatar-text">${firstLetter}</div>`;
+            }
 
+            // 2. Render HTML mới (Dạng nút bấm gọn gàng)
             authDiv.innerHTML = `
-                <div class="user-profile-nav" id="userProfileNav">
-                    <div class="user-info-group">
-                        ${avatarHtml}
-                        <div class="user-name">${user.displayName}</div>
-                    </div>
+                <div class="user-menu-container">
+                    <button class="user-menu-btn" id="userMenuBtn">
+                        <span class="nav-username">${user.displayName || 'User'}</span>
+                        ${avatarHTML}
+                        <i class="fas fa-chevron-down arrow-icon"></i>
+                    </button>
                     
-                    <div class="profile-dropdown-nav">
-                        <a href="/dashboard.html">🏠 Dashboard</a>
-                        <a href="/pages/typing.html">⌨️ Practice</a>
-                        <a href="/pages/settings.html">⚙️ Settings</a>
-                        <div class="divider"></div>
-                        <a href="#" id="btn-logout-nav" style="color: #ff6b6b;">🚪 Logout</a>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-header">
+                            <span class="greeting">Signed in as</span>
+                            <span class="email">${user.email}</span>
+                        </div>
+                        <div class="dropdown-links">
+                            <a href="/index.html"><i class="fas fa-home"></i> Dashboard</a>
+                            <a href="/pages/typing.html"><i class="fas fa-keyboard"></i> Practice</a>
+                            <a href="/pages/settings.html"><i class="fas fa-cog"></i> Settings</a>
+                            <div class="divider"></div>
+                            <a href="#" id="btn-logout-nav" class="logout-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
                     </div>
                 </div>
             `;
 
-            // Sự kiện Logout
-            document.getElementById('btn-logout-nav').addEventListener('click', async (e) => {
+            // 3. Sự kiện Click Dropdown
+            const btn = document.getElementById('userMenuBtn');
+            const dropdown = document.getElementById('userDropdown');
+            const logoutBtn = document.getElementById('btn-logout-nav');
+
+            // Toggle menu
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('show');
+                btn.classList.toggle('active');
+            });
+
+            // Đóng menu khi click ra ngoài
+            document.addEventListener('click', (e) => {
+                if (!authDiv.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Xử lý Logout
+            logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 await logoutUser();
                 window.location.href = "/login.html";
             });
 
-            // Sự kiện Toggle Dropdown
-            const userNav = document.getElementById('userProfileNav');
-            userNav.addEventListener('click', () => {
-                userNav.classList.toggle('active');
-            });
-
         } else {
-            // B. Chưa đăng nhập: Hiện nút Login
-            authDiv.innerHTML = `<a href="/login.html" class="login-btn">Login</a>`;
+            // --- TRƯỜNG HỢP CHƯA ĐĂNG NHẬP ---
+            authDiv.innerHTML = `<a href="/login.html" class="nav-login-btn">Login</a>`;
         }
     });
 
-    // 4. Highlight link đang active (Để biết mình đang ở trang nào)
+    // 4. Highlight Active Link
     const currentPath = window.location.pathname;
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        // So sánh đường dẫn tương đối
+    document.querySelectorAll('.nav-links > a').forEach(link => {
         if(link.getAttribute('href') === currentPath) {
             link.classList.add('active');
         }
