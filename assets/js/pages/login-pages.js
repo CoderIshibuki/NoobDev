@@ -6,10 +6,13 @@ import {
     signUpWithSocial,
     resetPassword // <--- Import hàm này
 } from '../firebase/auth.js';
+import { translations } from '../data/translations.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
     createStarsDirectly();
+    const lang = localStorage.getItem('language') || 'en';
+    applyLoginLanguage(lang);
 
     // ==========================================
     // 0. XỬ LÝ CHUYỂN TAB QUÊN MẬT KHẨU
@@ -183,6 +186,9 @@ function setupSocialBtn(elementId, socialType, mode) {
 }
 
 function createStarsDirectly() {
+    const isEffectsOn = localStorage.getItem('bgEffects') !== 'off';
+    if (!isEffectsOn) return;
+
     const container = document.getElementById('starsContainer');
     if(!container) return;
     container.innerHTML = '';
@@ -196,4 +202,30 @@ function createStarsDirectly() {
         star.style.animationDelay = Math.random() * 5 + 's';
         container.appendChild(star);
     }
+}
+
+function applyLoginLanguage(lang) {
+    const t = translations[lang];
+    if (!t) return;
+
+    // Titles
+    const titles = document.querySelectorAll('.form-title');
+    if(titles[0]) titles[0].innerText = t.loginTitle;
+    if(titles[1]) titles[1].innerText = t.signupTitle;
+
+    // Placeholders
+    document.querySelectorAll('input[type="email"]').forEach(i => i.placeholder = t.emailPlaceholder);
+    document.querySelectorAll('input[type="password"]').forEach(i => i.placeholder = t.passPlaceholder);
+    document.querySelectorAll('input[type="text"]').forEach(i => i.placeholder = t.namePlaceholder);
+
+    // Buttons
+    const loginBtn = document.querySelector('#loginForm button');
+    if(loginBtn) loginBtn.innerText = t.btnLogin;
+    
+    const signupBtn = document.querySelector('#signupForm button');
+    if(signupBtn) signupBtn.innerText = t.btnSignup;
+    
+    // Links
+    const forgot = document.getElementById('forgotPassLink');
+    if(forgot) forgot.innerText = t.forgotPass;
 }

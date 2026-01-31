@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Word Scramble - NoobDev</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/scramble.css">
+</head>
+<body>
+    <nav></nav>
+
+    <div class="game-wrapper">
+        <div class="game-card">
+            <a href="typing.html" class="exit-btn"><i class="fas fa-times"></i></a>
+            
+            <!-- Menu Screen -->
+            <div id="menuScreen">
+                <h1 class="game-title">Word Scramble</h1>
+                <p class="game-desc">Unscramble the letters to find the correct word!</p>
+                <button class="cta-button" onclick="startGame()">Start Game</button>
+            </div>
+
+            <!-- Playing Screen -->
+            <div id="playingScreen" class="hidden">
+                <div class="hud-overlay">
+                    <div class="score-container">Score: <span id="scoreDisplay">0</span></div>
+                    <div class="timer-container">Time: <span id="timeDisplay">60</span>s</div>
+                </div>
+
+                <div class="scramble-area">
+                    <div class="scrambled-word" id="scrambledWord">LOADING...</div>
+                    <input type="text" id="gameInput" class="game-input" placeholder="Type answer..." autocomplete="off">
+                    <div id="feedback" class="feedback"></div>
+                </div>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div id="gameOverScreen" class="hidden">
+                <h2 class="game-over-title">Time's Up!</h2>
+                <p>Final Score</p>
+                <h1 class="highlight-score" id="finalScore">0</h1>
+                <div class="action-buttons">
+                    <button class="cta-button" onclick="startGame()">Play Again</button>
+                    <button class="cta-button ghost" onclick="location.reload()">Menu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../assets/js/main.js"></script>
+    <script type="module" src="../assets/js/pages/scramble.js"></script>
+</body>
+</html>

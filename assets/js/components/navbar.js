@@ -1,23 +1,57 @@
 // assets/js/components/navbar.js
 import { auth } from '../firebase/config.js';
 import { logoutUser } from '../firebase/auth.js';
+import { translations } from '../data/translations.js';
 
 export function renderNavbar() {
-    // 1. Render khung HTML cơ bản
+    // 1. Xác định ngôn ngữ và đường dẫn
+    const lang = localStorage.getItem('language') || 'en';
+    const t = translations[lang] || translations['en'];
+    const isVi = lang === 'vi';
+
+    // Kiểm tra xem đang ở trang con (pages/) hay trang chủ (root)
+    const isInPages = window.location.pathname.includes('/pages/');
+    const rootPath = isInPages ? '../' : './';
+    const pagesPath = isInPages ? './' : './pages/';
+
+    // Định nghĩa đường dẫn chuẩn
+    const p = {
+        home: `${rootPath}index.html`,
+        about: `${pagesPath}about.html`,
+        tips: `${pagesPath}tips.html`,
+        faq: `${pagesPath}FAQ.html`,
+        typing: `${pagesPath}typing.html`,
+        login: `${rootPath}login.html`,
+        settings: `${pagesPath}settings.html`
+    };
+
+    // 2. Render khung HTML
     const navHTML = `
         <div class="nav-left">
             <button class="menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="logo">&lt;NoobDev/&gt;</div>
+            <a href="${p.home}" class="logo" style="text-decoration: none; color: white;">&lt;NoobDev/&gt;</a>
         </div>
         
         <div class="nav-links">
-            <a href="/index.html">Home</a>
-            <a href="/pages/about.html">About</a>
-            <a href="/pages/tips.html">Tips</a>
-            <a href="/pages/faq.html">FAQ</a>
-            <a href="/pages/typing.html">Typing</a>
+            <a href="${p.home}">${t.navHome}</a>
+            <a href="${p.about}">${t.navAbout}</a>
+            <a href="${p.tips}">${t.navTips}</a>
+            <a href="${p.faq}">${t.navFAQ}</a>
+            <a href="${p.typing}">${t.navTyping}</a>
+            
+            <div class="lang-menu-container">
+                <button class="lang-menu-btn" id="langMenuBtn">
+                    <i class="fas fa-globe"></i>
+                    <span class="lang-text">${isVi ? 'Tiếng Việt' : 'English'}</span>
+                    <i class="fas fa-chevron-down arrow-icon"></i>
+                </button>
+                <div class="lang-dropdown" id="langDropdown">
+                    <a href="#" data-lang="en" class="${!isVi ? 'active' : ''}">English</a>
+                    <a href="#" data-lang="vi" class="${isVi ? 'active' : ''}">Tiếng Việt</a>
+                </div>
+            </div>
             
             <div id="auth-section" class="auth-wrapper">
                 <div class="loading-spinner">...</div> 
@@ -40,6 +74,37 @@ export function renderNavbar() {
             if (!sideMenu.contains(e.target) && !menuToggle.contains(e.target)) {
                 sideMenu.classList.remove('active');
             }
+        });
+    }
+
+    // 3. Xử lý đổi ngôn ngữ (Dropdown)
+    const langBtn = document.getElementById('langMenuBtn');
+    const langDropdown = document.getElementById('langDropdown');
+    
+    if (langBtn && langDropdown) {
+        langBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langDropdown.classList.toggle('show');
+            langBtn.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!langBtn.contains(e.target) && !langDropdown.contains(e.target)) {
+                langDropdown.classList.remove('show');
+                langBtn.classList.remove('active');
+            }
+        });
+
+        langDropdown.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const selectedLang = e.target.getAttribute('data-lang');
+                if (selectedLang && selectedLang !== lang) {
+                    localStorage.setItem('language', selectedLang);
+                    location.reload();
+                }
+                langDropdown.classList.remove('show');
+            });
         });
     }
 
@@ -75,9 +140,9 @@ export function renderNavbar() {
                             <span class="email">${user.email}</span>
                         </div>
                         <div class="dropdown-links">
-                            <a href="/index.html"><i class="fas fa-home"></i> Dashboard</a>
-                            <a href="/pages/typing.html"><i class="fas fa-keyboard"></i> Practice</a>
-                            <a href="/pages/settings.html"><i class="fas fa-cog"></i> Settings</a>
+                            <a href="${p.home}"><i class="fas fa-home"></i> Dashboard</a>
+                            <a href="${p.typing}"><i class="fas fa-keyboard"></i> Practice</a>
+                            <a href="${p.settings}"><i class="fas fa-cog"></i> Settings</a>
                             <div class="divider"></div>
                             <a href="#" id="btn-logout-nav" class="logout-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
                         </div>
@@ -114,14 +179,14 @@ export function renderNavbar() {
 
         } else {
             // --- TRƯỜNG HỢP CHƯA ĐĂNG NHẬP ---
-            authDiv.innerHTML = `<a href="/login.html" class="nav-login-btn">Login</a>`;
+            authDiv.innerHTML = `<a href="${p.login}" class="nav-login-btn">${t.navLogin}</a>`;
         }
     });
 
     // 4. Highlight Active Link
-    const currentPath = window.location.pathname;
+    const currentPath = window.location.pathname.split('/').pop(); // Lấy tên file cuối cùng
     document.querySelectorAll('.nav-links > a').forEach(link => {
-        if(link.getAttribute('href') === currentPath) {
+        if(link.getAttribute('href').includes(currentPath) && currentPath !== '') {
             link.classList.add('active');
         }
     });

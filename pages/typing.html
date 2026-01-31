@@ -9,13 +9,13 @@
 </head>
 <body>
     
-    <div class="hero">
-        <div class="stars" id="starsContainer"></div>
-        <div class="moon"><div class="moon-crater crater1"></div><div class="moon-crater crater2"></div></div>
-        <div class="clouds"><div class="cloud cloud1"></div><div class="cloud cloud2"></div><div class="cloud cloud3"></div></div>
+    <div class="stars" id="starsContainer"></div>
+    <div class="moon"><div class="moon-crater crater1"></div><div class="moon-crater crater2"></div></div>
+    <div class="clouds"><div class="cloud cloud1"></div><div class="cloud cloud2"></div><div class="cloud cloud3"></div></div>
 
-        <nav></nav>
+    <nav></nav>
 
+    <div class="hero" style="background: transparent; min-height: auto;">
         <div class="typing-container">
             
             <div class="selection-bar">
@@ -60,6 +60,10 @@
                             <div class="card-header"><i class="fas fa-cubes lesson-icon"></i></div>
                             <div class="lesson-info"><h3>Falling Block</h3><p>Type Falling Words</p></div>
                         </a>
+                        <a href="scramble.html" class="lesson-card" style="text-decoration: none; color: inherit;">
+                            <div class="card-header"><i class="fas fa-random lesson-icon"></i></div>
+                            <div class="lesson-info"><h3>Word Scramble</h3><p>Unscramble & Type</p></div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -68,7 +72,7 @@
                  <div class="custom-box">
                      <h2 class="section-title" style="border:none; text-align:center;">Custom Practice</h2>
                      <p style="color:#cbd5e1; margin-bottom:20px; text-align:center;">Paste your own text to practice.</p>
-                     <button class="cta-button" onclick="openCustomModal()">Enter Text</button>
+                     <button sty class="cta-button" onclick="openCustomModal()">Enter Text</button>
                  </div>
             </div>
 
@@ -91,7 +95,7 @@
 
             <div class="result-overlay" id="resultOverlay">
                 <div class="result-card">
-                    <h2 style="color: #4ade80;">Great Job!</h2>
+                    <h2 style="color: #4ade80; margin: 5px 30px;">Great Job!</h2>
                     <div class="result-stats">
                         <div class="res-item"><div class="big-num" id="finalWpm">0</div><span>WPM</span></div>
                         <div class="res-item"><div class="big-num" id="finalAcc">100%</div><span>Accuracy</span></div>
@@ -142,16 +146,6 @@
         </div>
     </div>
 
-    <script type="module">
-        import { renderNavbar } from '../assets/js/components/navbar.js';
-        import { initStars } from '../assets/js/ui/effects.js';
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            renderNavbar(); // Tự động tạo Navbar
-            initStars();    // Tự động tạo sao
-        });
-    </script>
-    <script src="../assets/js/script.js"></script>
-    <script src="../assets/js/pages/typing.js"></script>
+    <script type="module" src="../assets/js/pages/typing.js"></script>
 </body>
 </html>

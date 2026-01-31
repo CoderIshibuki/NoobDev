@@ -1,6 +1,6 @@
 /* --- LƯU TẠI: assets/js/pages/fallingblocks.js --- */
 
-import { saveGameScore } from '../firebase/db.js';
+import { saveGameScore, renderLeaderboardUI } from '../firebase/db.js';
 
 const WORDS = {
     en: ["Python", "Java", "HTML", "CSS", "React", "NodeJS", "SQL", "Docker", "Git", "Windows", "Linux", "Apple", "Google", "Amazon", "Tesla", "CPU", "GPU", "RAM", "SSD", "USB", "WIFI", "VPN", "API", "JSON", "XML", "PDF", "Code", "Bug", "Dev", "Web", "App", "AI"],
@@ -12,6 +12,11 @@ let spawnInterval, activeBlocks = [], currentTargetId = null;
 let gameCurrentLang = localStorage.getItem('language') || 'en';
 
 // ... (các biến global) ...
+
+document.addEventListener('DOMContentLoaded', () => {
+    initStars();
+    setupLeaderboard();
+});
 
 window.startGame = function(selectedLevel) {
     console.log("Start Falling Blocks: " + selectedLevel);
@@ -167,4 +172,48 @@ function updateHUD() {
     for(let i=0; i<3; i++) {
         livesContainer.innerHTML += `<i class="fas fa-heart ${i<lives?'heart-filled':'heart-empty'}"></i>`;
     }
+}
+
+// --- NEW FEATURES ---
+function initStars() {
+    const isEffectsOn = localStorage.getItem('bgEffects') !== 'off';
+    if (!isEffectsOn) return;
+
+    let container = document.getElementById('starsContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'starsContainer';
+        container.className = 'stars';
+        document.body.prepend(container);
+    }
+    container.innerHTML = '';
+    for(let i=0; i<400; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const s = Math.random() * 2 + 1;
+        star.style.width = s + 'px'; star.style.height = s + 'px';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 5 + 's';
+        star.style.opacity = Math.random() * 0.7 + 0.3;
+        container.appendChild(star);
+    }
+}
+
+function setupLeaderboard() {
+    const wrapper = document.querySelector('.game-wrapper');
+    if (!wrapper) return;
+
+    // Tạo panel leaderboard
+    const lbPanel = document.createElement('div');
+    lbPanel.className = 'leaderboard-panel';
+    lbPanel.innerHTML = `
+        <h3><i class="fas fa-trophy"></i> Top Players</h3>
+        <div id="fallingLeaderboard" class="lb-list">
+            <div class="loading">Loading...</div>
+        </div>
+    `;
+    wrapper.appendChild(lbPanel);
+
+    renderLeaderboardUI('falling', 'fallingLeaderboard');
 }

@@ -222,8 +222,63 @@ nav {
     box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
 }
 
+/* --- LANGUAGE DROPDOWN --- */
+.lang-menu-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.lang-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.lang-menu-btn:hover, .lang-menu-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.lang-menu-btn.active .arrow-icon { transform: rotate(180deg); }
+
+.lang-dropdown {
+    position: absolute;
+    top: 120%;
+    right: 0;
+    width: 140px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 5px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    opacity: 0; visibility: hidden; transform: translateY(-10px);
+    transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    z-index: 1000;
+    display: flex; flex-direction: column;
+}
+
+.lang-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0); }
+
+.lang-dropdown a { padding: 10px 15px; color: #cbd5e1; text-decoration: none; border-radius: 8px; font-size: 0.9rem; transition: 0.2s; display: block; }
+.lang-dropdown a:hover { background: rgba(255,255,255,0.05); color: white; }
+.lang-dropdown a.active { color: #38bdf8; background: rgba(56, 189, 248, 0.1); font-weight: 600; }
+
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
+    .lang-text { display: none; } /* Ẩn chữ trên mobile, chỉ hiện icon quả cầu */
     .nav-username { display: none; } /* Ẩn tên trên mobile cho gọn */
     .user-menu-btn { padding: 5px; border-radius: 50%; border: none; background: transparent; }
     .nav-avatar-img, .nav-avatar-text { width: 40px; height: 40px; }

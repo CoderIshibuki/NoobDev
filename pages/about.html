@@ -35,48 +35,48 @@
     <div class="about-container"> 
         <div class="content-header">
             <h1 id="typing-text" style="min-height: 80px;"></h1> 
-            <p>Bridging the gap between your thoughts and the screen.</p>
+            <p data-translate="aboutHeaderSubtitle">Bridging the gap between your thoughts and the screen.</p>
         </div>
 
         <div class="story-grid">
             <div class="glass-card">
                 <div class="feature-icon"><i class="fas fa-users-gear"></i></div>
-                <h3>Who is NoobDev?</h3>
-                <p>We are a collective of developers, designers, and keyboard enthusiasts. The name <strong>"NoobDev"</strong> reminds us that everyone starts somewhere.</p>
+                <h3 data-translate="aboutCard1Title">Who is NoobDev?</h3>
+                <p data-translate="aboutCard1Desc">We are a collective of developers, designers, and keyboard enthusiasts. The name <strong>"NoobDev"</strong> reminds us that everyone starts somewhere.</p>
             </div>
             <div class="glass-card">
                 <div class="feature-icon"><i class="fas fa-rocket"></i></div>
-                <h3>Our Mission</h3>
-                <p>Typing is the foundational skill of the digital age. Whether you're a coder debugging at 2 AM or a writer crafting a novel, the keyboard is your instrument.</p>
+                <h3 data-translate="aboutCard2Title">Our Mission</h3>
+                <p data-translate="aboutCard2Desc">Typing is the foundational skill of the digital age. Whether you're a coder debugging at 2 AM or a writer crafting a novel, the keyboard is your instrument.</p>
             </div>
             <div class="glass-card">
                 <div class="feature-icon"><i class="fas fa-heart"></i></div>
-                <h3>Why Choose Us?</h3>
-                <ul>
+                <h3 data-translate="aboutCard3Title">Why Choose Us?</h3>
+                <div data-translate="aboutCard3Desc">
                     <p><strong>Minimalist:</strong> No clutter, just you and the text.</p>
                     <p><strong>Ads-Free:</strong> We prioritize experience over profit.</p>
                     <p><strong>Community:</strong> Built by devs, for everyone.</p>
-                </ul>
+                </div>
             </div>
             <div class="glass-card">
                 <div class="feature-icon"><i class="fas fa-seedling"></i></div>
-                <h3>The "Noob" Mindset</h3>
-                <p>We wear the badge of "Noob" with pride. Being a beginner isn't a weakness; it's a state of infinite potential. We celebrate every WPM increase.</p>
+                <h3 data-translate="aboutCard4Title">The "Noob" Mindset</h3>
+                <p data-translate="aboutCard4Desc">We wear the badge of "Noob" with pride. Being a beginner isn't a weakness; it's a state of infinite potential. We celebrate every WPM increase.</p>
             </div>
             <div class="glass-card">
                 <div class="feature-icon"><i class="fas fa-map-location-dot"></i></div>
-                <h3>What's Next?</h3>
-                <p>We are building the ultimate typing ecosystem. <strong>Coming soon:</strong> Multiplayer battles, custom mechanical switch sound packs.</p>
+                <h3 data-translate="aboutCard5Title">What's Next?</h3>
+                <p data-translate="aboutCard5Desc">We are building the ultimate typing ecosystem. <strong>Coming soon:</strong> Multiplayer battles, custom mechanical switch sound packs.</p>
             </div>
             <div class="glass-card">
                 <div class="feature-icon"><i class="fas fa-comments"></i></div>
-                <h3>Community First</h3>
-                <p>NoobDev isn't just a tool; it's a gathering place. We actively listen to every pull request, feedback, and feature suggestion.</p>
+                <h3 data-translate="aboutCard6Title">Community First</h3>
+                <p data-translate="aboutCard6Desc">NoobDev isn't just a tool; it's a gathering place. We actively listen to every pull request, feedback, and feature suggestion.</p>
             </div>
         </div>
 
         <div class="team-section">
-            <h2 class="section-title">Meet the Team</h2>
+            <h2 class="section-title" data-translate="teamTitle">Meet the Team</h2>
             <div class="team-grid">
                 <div class="team-member">
                     <div class="avatar-placeholder"><i class="fas fa-user-astronaut"></i></div>
@@ -107,8 +107,8 @@
         </div>
 
         <div class="tech-stack">
-            <h3 style="margin-bottom: 20px; font-size: 2rem;">Built With Passion & Code</h3>
-            <p style="color: #cbd5e1;">Powered by modern web technologies.</p>
+            <h3 style="margin-bottom: 20px; font-size: 2rem;" data-translate="techTitle">Built With Passion & Code</h3>
+            <p style="color: #cbd5e1;" data-translate="techSubtitle">Powered by modern web technologies.</p>
             <div class="tech-icons">
                 <i class="fab fa-html5 tech-item" title="HTML5" style="color: #e34f26;"></i>
                 <i class="fab fa-css3-alt tech-item" title="CSS3" style="color: #1572b6;"></i>
@@ -123,11 +123,20 @@
 
     <script type="module">
         import { renderNavbar } from '../assets/js/components/navbar.js';
+        import { translations } from '../assets/js/data/translations.js';
         // Import file about.js để chạy hiệu ứng gõ chữ
         import '../assets/js/pages/about.js';
         
         document.addEventListener('DOMContentLoaded', () => {
             renderNavbar(); // Hiển thị Navbar
+            
+            // Apply Translations
+            const lang = localStorage.getItem('language') || 'en';
+            const t = translations[lang];
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.getAttribute('data-translate');
+                if(t[key]) el.innerHTML = t[key];
+            });
         });
     </script>
 </body>

@@ -1,10 +1,12 @@
-import { renderNavbar } from '../components/navbar.js';
 import { auth, db } from '../firebase/config.js';
 import { updateProfile, updatePassword, onAuthStateChanged, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { translations } from '../data/translations.js';
+import { renderNavbar } from '../components/navbar.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderNavbar();
+    const lang = localStorage.getItem('language') || 'en';
+    renderNavbar(); // Sử dụng hàm chuẩn từ component
     
     // UI Elements
     const nameInput = document.getElementById('displayNameInput');
@@ -120,6 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = "/login.html";
         }
     });
+    
+    // --- 6. APPLY LANGUAGE ---
+    applySettingsLanguage(lang);
 
     // --- 5. SAVE ---
     if (form) {
@@ -179,3 +184,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+function applySettingsLanguage(lang) {
+    const t = translations[lang];
+    if (!t) return;
+    
+    const title = document.querySelector('.settings-container h2');
+    if(title) title.innerText = t.settingsTitle;
+    
+    const labels = document.querySelectorAll('label');
+    labels.forEach(l => {
+        if(l.innerText.includes('Display Name')) l.innerText = t.lblDisplayName;
+        if(l.innerText.includes('Avatar URL')) l.innerText = t.lblPhotoUrl;
+        if(l.innerText.includes('Game Volume')) l.innerText = t.lblVolume;
+        if(l.innerText.includes('Background Effects')) l.innerText = t.lblEffects;
+    });
+    
+    const btn = document.querySelector('.save-btn');
+    if(btn) btn.innerText = t.btnSave;
+}

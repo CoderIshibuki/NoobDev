@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- HÀM TẠO SAO TRỰC TIẾP ---
 function createStarsDirectly() {
+    const isEffectsOn = localStorage.getItem('bgEffects') !== 'off';
+    if (!isEffectsOn) return;
+
     const container = document.getElementById('starsContainer');
     
     // Kiểm tra xem tìm thấy thẻ chứa sao không

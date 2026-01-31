@@ -20,6 +20,9 @@ function typeWriter() {
 
 // --- 2. STAR GENERATION (Nếu script.js chưa có) ---
 function createStars() {
+    const isEffectsOn = localStorage.getItem('bgEffects') !== 'off';
+    if (!isEffectsOn) return;
+
     const container = document.getElementById('starsContainer');
     if (!container || container.innerHTML !== "") return; // Tránh tạo trùng
 

@@ -4,6 +4,9 @@ import { initLanguage } from './ui/language.js';
 
 // Hàm tạo sao (có thể import từ file effects.js hoặc viết trực tiếp nếu đơn giản)
 function initStars() {
+    const isEffectsOn = localStorage.getItem('bgEffects') !== 'off';
+    if (!isEffectsOn) return;
+
     const container = document.getElementById('starsContainer');
     if(!container) return;
     
