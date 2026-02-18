@@ -4,7 +4,8 @@ import {
     registerUser, 
     loginWithSocial, 
     signUpWithSocial,
-    resetPassword // <--- Import hàm này
+    resetPassword,
+    resendVerification // <--- MỚI: Import hàm này
 } from '../firebase/auth.js';
 import { translations } from '../data/translations.js';
 
@@ -58,6 +59,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // --- 1. KIỂM TRA COOLDOWN (MỚI) ---
+            const lastReset = localStorage.getItem('reset_password_time');
+            const COOLDOWN = 60000; // 60 giây
+            const now = Date.now();
+
+            if (lastReset && (now - parseInt(lastReset) < COOLDOWN)) {
+                const remaining = Math.ceil((COOLDOWN - (now - parseInt(lastReset))) / 1000);
+                alert(`Vui lòng đợi ${remaining} giây nữa trước khi yêu cầu gửi lại link.`);
+                return;
+            }
+
             btn.innerText = "Đang gửi...";
             btn.disabled = true;
 
@@ -69,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = false;
 
             if (result.success) {
+                localStorage.setItem('reset_password_time', Date.now().toString());
                 // Thành công thì quay về trang Login cho user đăng nhập
                 backLink.click();
             }
@@ -101,7 +114,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('isLoggedIn', 'true'); 
                 window.location.href = "index.html";
             } else {
-                alert(result.message);
+                // --- XỬ LÝ GỬI LẠI EMAIL ---
+                if (result.isUnverified) {
+                    // --- 1. KIỂM TRA COOLDOWN (MỚI) ---
+                    const lastResend = localStorage.getItem('resend_verify_email_time');
+                    const COOLDOWN = 60000; // 60 giây
+                    const now = Date.now();
+
+                    if (lastResend && (now - parseInt(lastResend) < COOLDOWN)) {
+                        const remaining = Math.ceil((COOLDOWN - (now - parseInt(lastResend))) / 1000);
+                        alert(`Vui lòng đợi ${remaining} giây nữa trước khi yêu cầu gửi lại email.`);
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    const wantResend = confirm(result.message + "\n\nBạn có muốn gửi lại email xác thực không?");
+                    if (wantResend) {
+                        btn.innerText = "Đang gửi lại...";
+                        const resendResult = await resendVerification(emailInp.value, passInp.value);
+                        if (resendResult.success) {
+                            localStorage.setItem('resend_verify_email_time', Date.now().toString());
+                        }
+                        alert(resendResult.message);
+                    }
+                } else {
+                    // Lỗi khác
+                    alert(result.message);
+                }
+                // ---------------------------
+                
                 btn.innerText = originalText;
                 btn.disabled = false;
             }
@@ -133,9 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await registerUser(name, email, pass);
             
             if (result.success) {
-                alert("Tạo tài khoản thành công! Đang đăng nhập...");
-                localStorage.setItem('isLoggedIn', 'true');
-                window.location.href = "index.html";
+                alert(result.message);
+                window.location.reload();
             } else {
                 alert(result.message);
                 btn.innerText = originalText;
@@ -153,6 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSocialBtn('signup-google', 'google', 'signup');
     setupSocialBtn('signup-fb', 'facebook', 'signup');
     setupSocialBtn('signup-github', 'github', 'signup');
+
+    // ==========================================
+    // 5. TOGGLE PASSWORD VISIBILITY
+    // ==========================================
+    setupPasswordToggle();
 });
 
 // Hàm gắn sự kiện chung
@@ -182,6 +228,25 @@ function setupSocialBtn(elementId, socialType, mode) {
         } else {
             alert(result.message);
         }
+    });
+}
+
+function setupPasswordToggle() {
+    const toggleIcons = document.querySelectorAll('.toggle-password');
+    
+    toggleIcons.forEach(icon => {
+        icon.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input');
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+            }
+        });
     });
 }
 

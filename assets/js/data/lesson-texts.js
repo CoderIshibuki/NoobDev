@@ -45,3 +45,17 @@ export const txtStory5Vi = "Tri tue nhan tao dang thay doi the gioi voi toc do c
 // --- Expert: Programmer Mode ---
 export const txtProgrammerMode = "if (x > 0) { return true; } else { return false; } // TODO: Fix this bug! const arr = [1, 2, 3].map(x => x * 2); console.log(`Result: ${arr}`); #include <stdio.h> int main() { printf(\"Hello\"); return 0; }";
 export const txtHardSymbols = "~ ! @ # $ % ^ & * ( ) _ + { } | : \" < > ? ` - = [ ] \\ ; ' , . / ~ ! @ # $ % ^ & * ( ) _ +";
+
+// --- NEW: Real World Code ---
+export const txtReactHook = "import React, { useState, useEffect } from 'react'; function Example() { const [count, setCount] = useState(0); useEffect(() => { document.title = `You clicked ${count} times`; }); return (<button onClick={() => setCount(count + 1)}>Click me</button>); }";
+export const txtSQLQuery = "SELECT users.name, orders.amount FROM users JOIN orders ON users.id = orders.user_id WHERE orders.status = 'completed' AND orders.date > '2023-01-01' ORDER BY orders.amount DESC LIMIT 10;";
+export const txtPythonData = "def calculate_average(numbers): if not numbers: return 0 total = sum(numbers) return total / len(numbers) data = [10, 20, 30, 40] print(f'Average: {calculate_average(data)}')";
+
+// --- NEW: Tongue Twisters (Luyện linh hoạt ngón tay) ---
+export const txtTwister1 = "Peter Piper picked a peck of pickled peppers. A peck of pickled peppers Peter Piper picked. If Peter Piper picked a peck of pickled peppers, where's the peck of pickled peppers Peter Piper picked?";
+export const txtTwister2 = "How much wood would a woodchuck chuck if a woodchuck could chuck wood? He would chuck, he would, as much as he could, and chuck as much wood as a woodchuck would if a woodchuck could chuck wood.";
+export const txtTwister3 = "She sells seashells by the seashore. The shells she sells are seashells, I'm sure. So if she sells seashells on the seashore, then I'm sure she sells seashore shells.";
+
+// --- NEW: Literature (Văn học) ---
+export const txtGatsby = "So we beat on, boats against the current, borne back ceaselessly into the past. I hope she'll be a fool -- that's the best thing a girl can be in this world, a beautiful little fool.";
+export const txtSherlock = "To Sherlock Holmes she is always the woman. I have seldom heard him mention her under any other name. In his eyes she eclipses and predominates the whole of her sex.";

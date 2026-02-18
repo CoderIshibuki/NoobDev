@@ -20,6 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const msgBox = document.getElementById('messageBox');
     const effectsToggle = document.getElementById('toggleEffects');
     const volumeSlider = document.getElementById('volumeSlider');
+    const cursorStyleInput = document.getElementById('cursorStyleInput');
+    const cursorColorInput = document.getElementById('cursorColorInput');
+    const btnRestore = document.getElementById('btnRestore');
+    const cursorPreviewBox = document.getElementById('cursorPreviewBox');
+    const fontFamilyInput = document.getElementById('fontFamilyInput');
+    const toggleSmoothCaret = document.getElementById('toggleSmoothCaret');
+    const fontFileInput = document.getElementById('fontFileInput');
 
     // --- 1. HIỆU ỨNG SAO (Cập nhật giống Tips: 500 sao) ---
     function createStarsDirectly() {
@@ -107,6 +114,136 @@ document.addEventListener('DOMContentLoaded', () => {
         volumeSlider.value = localStorage.getItem('gameVolume') || 80;
         volumeSlider.addEventListener('input', (e) => {
             localStorage.setItem('gameVolume', e.target.value);
+        });
+    }
+
+    // --- HELPER: UPDATE PREVIEW ---
+    function updateCursorPreview() {
+        if (!cursorPreviewBox) return;
+        const style = localStorage.getItem('cursorStyle') || 'underscore';
+        const color = localStorage.getItem('cursorColor') || '#38bdf8';
+        const font = localStorage.getItem('typingFont') || "'Courier New', Courier, monospace";
+        
+        // Update Style Class
+        cursorPreviewBox.className = `cursor-preview-box cursor-${style}`;
+        // Update Color Variable
+        cursorPreviewBox.style.setProperty('--cursor-color', color);
+        cursorPreviewBox.style.fontFamily = font;
+
+        // Update Smooth Caret Preview
+        const isSmooth = localStorage.getItem('smoothCaret') === 'true';
+        cursorPreviewBox.classList.toggle('smooth-mode', isSmooth);
+    }
+
+    // --- 3.1 CURSOR SETTINGS (MỚI) ---
+    if (cursorStyleInput) {
+        cursorStyleInput.value = localStorage.getItem('cursorStyle') || 'underscore';
+        cursorStyleInput.addEventListener('change', (e) => {
+            localStorage.setItem('cursorStyle', e.target.value);
+            updateCursorPreview();
+        });
+    }
+
+    if (cursorColorInput) {
+        const savedColor = localStorage.getItem('cursorColor') || '#38bdf8';
+        cursorColorInput.value = savedColor;
+        // Hiệu ứng visual ban đầu
+        cursorColorInput.style.borderColor = savedColor;
+        cursorColorInput.style.boxShadow = `0 0 15px ${savedColor}40`; // 40 = độ trong suốt thấp
+
+        cursorColorInput.addEventListener('input', (e) => {
+            const color = e.target.value;
+            localStorage.setItem('cursorColor', color);
+            // Cập nhật visual ngay lập tức
+            cursorColorInput.style.borderColor = color;
+            cursorColorInput.style.boxShadow = `0 0 20px ${color}60`;
+            updateCursorPreview();
+        });
+    }
+
+    if (fontFamilyInput) {
+        fontFamilyInput.value = localStorage.getItem('typingFont') || "'Courier New', Courier, monospace";
+        fontFamilyInput.addEventListener('change', (e) => {
+            localStorage.setItem('typingFont', e.target.value);
+            updateCursorPreview();
+        });
+    }
+
+    // --- 3.3 SMOOTH CARET ---
+    if (toggleSmoothCaret) {
+        toggleSmoothCaret.checked = localStorage.getItem('smoothCaret') === 'true';
+        toggleSmoothCaret.addEventListener('change', (e) => {
+            localStorage.setItem('smoothCaret', e.target.checked);
+            updateCursorPreview();
+        });
+    }
+
+    // --- 3.4 CUSTOM FONT UPLOAD ---
+    if (fontFileInput) {
+        fontFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                try {
+                    const fontData = evt.target.result;
+                    // Load font vào document
+                    const font = new FontFace('CustomFont', `url(${fontData})`);
+                    await font.load();
+                    document.fonts.add(font);
+
+                    // Lưu vào localStorage
+                    localStorage.setItem('customFontData', fontData);
+                    localStorage.setItem('typingFont', 'CustomFont');
+                    
+                    // Cập nhật UI
+                    if(fontFamilyInput) fontFamilyInput.value = 'CustomFont'; // Cần thêm option này vào select nếu chưa có
+                    // Cập nhật tên file hiển thị
+                    document.getElementById('fontFileName').innerText = file.name;
+                    alert("Custom font loaded successfully!");
+                    updateCursorPreview();
+                } catch (err) {
+                    alert("Error loading font. File might be too large for storage.");
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    // Init Preview on Load
+    updateCursorPreview();
+
+    // --- 3.2 RESTORE DEFAULTS (MỚI) ---
+    if (btnRestore) {
+        btnRestore.addEventListener('click', () => {
+            if(confirm("Are you sure you want to reset all settings to default?")) {
+                // Reset LocalStorage
+                localStorage.setItem('gameVolume', '80');
+                localStorage.setItem('bgEffects', 'on');
+                localStorage.setItem('cursorStyle', 'underscore');
+                localStorage.setItem('cursorColor', '#38bdf8');
+                localStorage.setItem('typingFont', "'Courier New', Courier, monospace");
+                localStorage.setItem('smoothCaret', 'false');
+                
+                // Update UI
+                if(volumeSlider) volumeSlider.value = 80;
+                if(effectsToggle) {
+                    effectsToggle.checked = true;
+                    createStarsDirectly();
+                }
+                if(cursorStyleInput) cursorStyleInput.value = 'underscore';
+                if(cursorColorInput) cursorColorInput.value = '#38bdf8';
+                if(fontFamilyInput) fontFamilyInput.value = "'Courier New', Courier, monospace";
+                if(toggleSmoothCaret) toggleSmoothCaret.checked = false;
+                updateCursorPreview();
+                
+                // Show message
+                msgBox.style.display = 'block';
+                msgBox.className = 'msg success';
+                msgBox.innerText = "Settings restored to defaults!";
+                setTimeout(() => msgBox.style.display = 'none', 2000);
+            }
         });
     }
 
@@ -198,8 +335,17 @@ function applySettingsLanguage(lang) {
         if(l.innerText.includes('Avatar URL')) l.innerText = t.lblPhotoUrl;
         if(l.innerText.includes('Game Volume')) l.innerText = t.lblVolume;
         if(l.innerText.includes('Background Effects')) l.innerText = t.lblEffects;
+        if(l.id === 'lblCursorStyle') l.innerText = t.lblCursorStyle;
+        if(l.id === 'lblCursorColor') l.innerText = t.lblCursorColor;
+        if(l.id === 'lblFontFamily') l.innerText = t.lblFontFamily;
+        if(l.id === 'lblSmoothCaret') l.innerText = t.lblSmoothCaret;
+        if(l.id === 'lblCustomFont') l.innerText = t.lblCustomFont;
+        if(document.getElementById('fontFileName')) document.getElementById('fontFileName').innerText = t.btnUploadFont;
     });
     
     const btn = document.querySelector('.save-btn');
     if(btn) btn.innerText = t.btnSave;
+
+    const restoreBtn = document.getElementById('btnRestore');
+    if(restoreBtn) restoreBtn.innerText = t.btnRestore;
 }

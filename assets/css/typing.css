@@ -7,7 +7,7 @@
     width: 90%; /* Chiều rộng chiếm 90% màn hình */
     max-width: 1200px; /* Giới hạn chiều rộng tối đa là 1200px */
     margin: 0 auto; /* Căn giữa container */
-    padding-top: 50px; /* Khoảng cách phía trên (tránh header) */
+    padding-top: 50px; 
     padding-bottom: 80px; /* Khoảng cách phía dưới */
     position: relative; /* Thiết lập vị trí tương đối */
     z-index: 10; /* Đặt lớp hiển thị cao hơn nền */
@@ -88,6 +88,13 @@
     background: rgba(56, 189, 248, 0.1); /* Nền xanh nhạt */
 }
 
+/* Active state cho các nút toggle (Sound, Zen) */
+.nav-control-btn.active {
+    color: #38bdf8;
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.2);
+}
+
 /* Bảng thống kê (WPM, Time) */
 .stats-bar {
     display: flex; /* Sử dụng Flexbox */
@@ -131,7 +138,7 @@
     padding: 30px; /* [Thu gọn] Giảm đệm */
     position: relative; /* Vị trí tương đối */
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); /* Đổ bóng sâu */
-    min-height: 160px; /* [Thu gọn] Giảm chiều cao tối thiểu */
+    min-height: 220px; /* [FIX] Tăng chiều cao khung gõ */
     display: flex; /* Flexbox để căn giữa nội dung */
     align-items: center; /* Căn giữa dọc */
     justify-content: center; /* Căn giữa ngang */
@@ -151,13 +158,13 @@
 
 /* Nội dung Text gõ */
 .typing-box {
-    font-family: 'Courier New', Courier, monospace; /* Font đơn cách để đều chữ */
-    font-size: 1.6rem; /* [Thu gọn] Chữ vừa phải */
+    font-family: var(--typing-font, 'Courier New', Courier, monospace); /* Font đơn cách để đều chữ */
+    font-size: 2.2rem; /* [FIX] Tăng cỡ chữ to hơn */
     line-height: 1.6;
     color: #64748b; /* Màu chữ chưa gõ (xám tối) */
     user-select: none; /* Không cho phép bôi đen */
     width: 100%; /* Chiều rộng tối đa */
-    max-height: 120px; /* [Thu gọn] Chỉ hiện khoảng 3 dòng, JS sẽ tự cuộn */
+    max-height: 180px; /* [FIX] Tăng chiều cao hiển thị nội dung */
     overflow: hidden; /* Ẩn thanh cuộn */
     white-space: pre-wrap; /* Giữ nguyên xuống dòng */
     word-break: break-word; /* Ngắt từ nếu quá dài */
@@ -178,18 +185,58 @@
     border-radius: 4px; /* Bo góc nền đỏ */
 }
 
+/* [MỚI] Hiệu ứng phát sáng mạnh cho ký tự đang gõ */
+.typing-box span.active {
+    color: #ffffff; /* Chữ trắng sáng */
+    text-shadow: 0 0 15px rgba(56, 189, 248, 1), 0 0 30px rgba(56, 189, 248, 0.6); /* Glow chữ mạnh */
+    background-color: rgba(56, 189, 248, 0.2); /* Nền xanh mờ làm nổi bật vị trí */
+    border-radius: 4px;
+}
+
+/* [MỚI] Smooth Caret Element */
+#smoothCaret {
+    position: absolute;
+    background-color: var(--cursor-color, #38bdf8);
+    box-shadow: 0 0 20px var(--cursor-color, #38bdf8), 0 0 40px var(--cursor-color, #38bdf8);
+    animation: blink 1s infinite;
+    pointer-events: none;
+    transition: left 0.1s ease-out, top 0.1s ease-out, width 0.1s ease-out, height 0.1s ease-out;
+    z-index: 5;
+}
+
+/* Khi bật Smooth Caret, ẩn con trỏ CSS mặc định */
+.typing-box.smooth-mode span.active::before {
+    display: none !important;
+}
+
+/* --- CON TRỎ MẶC ĐỊNH (CSS BASED) --- */
 /* Con trỏ nhấp nháy (Cursor) */
 .typing-box span.active::before {
     content: ""; /* Nội dung giả */
     position: absolute; /* Vị trí tuyệt đối */
-    /* [FIX LỖI] Xóa các thuộc tính thừa, chỉ giữ lại thanh dọc */
-    left: 0; 
-    bottom: 0; 
-    height: 3px; 
-    width: 100%; /* Thanh ngang dưới chân chữ */
-    background-color: #38bdf8; /* Màu xanh neon */
-    box-shadow: 0 0 10px #38bdf8; /* Phát sáng con trỏ */
+    background-color: var(--cursor-color, #38bdf8); /* [FIX] Dùng biến để tùy chỉnh màu */
+    box-shadow: 0 0 20px var(--cursor-color, #38bdf8), 0 0 40px var(--cursor-color, #38bdf8); /* Glow theo màu */
     animation: blink 1s infinite; /* Hiệu ứng nhấp nháy */
+    pointer-events: none;
+}
+
+/* Style 1: Underscore (Gạch dưới - Mặc định) */
+.typing-box.cursor-underscore span.active::before, #smoothCaret.cursor-underscore {
+    left: 0; bottom: 0;
+    height: 3px; width: 100%;
+}
+
+/* Style 2: Block (Khối) */
+.typing-box.cursor-block span.active::before, #smoothCaret.cursor-block {
+    left: 0; top: 0;
+    height: 100%; width: 100%;
+    opacity: 0.5; z-index: -1; /* Nằm dưới chữ */
+}
+
+/* Style 3: Vertical Bar (Thanh dọc) */
+.typing-box.cursor-bar span.active::before, #smoothCaret.cursor-bar {
+    left: -2px; top: 0; /* Điều chỉnh vị trí */
+    height: 100%; width: 2px;
 }
 @keyframes blink { 50% { opacity: 0; } } /* Animation ẩn hiện */
 
@@ -286,6 +333,13 @@
     box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
     border-color: transparent;
 }
+
+/* Heatmap Colors (Mức độ sai) */
+.key.heat-1 { background: rgba(248, 113, 113, 0.2); border-color: rgba(248, 113, 113, 0.4); }
+.key.heat-2 { background: rgba(248, 113, 113, 0.4); border-color: rgba(248, 113, 113, 0.6); }
+.key.heat-3 { background: rgba(248, 113, 113, 0.6); border-color: rgba(248, 113, 113, 0.8); color: white; }
+.key.heat-4 { background: rgba(248, 113, 113, 0.8); border-color: #f87171; color: white; }
+.key.heat-5 { background: #ef4444; border-color: #b91c1c; color: white; box-shadow: 0 0 15px #ef4444; }
 
 /* Kích thước các phím đặc biệt */
 .key.backspace { width: 70px; font-size: 0.7rem; }
@@ -660,4 +714,18 @@
 .loading, .no-data {
     text-align: center; color: #94a3b8; padding: 30px;
     font-style: italic; background: rgba(0,0,0,0.2); border-radius: 10px;
+}
+
+/* =========================================
+   9. ZEN MODE (CHẾ ĐỘ TẬP TRUNG)
+   ========================================= */
+body.zen-mode nav,
+body.zen-mode footer,
+body.zen-mode .selection-bar,
+body.zen-mode .stats-bar,
+body.zen-mode .keyboard-container,
+body.zen-mode .leaderboard-panel {
+    display: none !important;
+    opacity: 0;
+    transition: opacity 0.5s ease;
 }

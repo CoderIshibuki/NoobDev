@@ -1,0 +1,223 @@
+/* assets/css/multiplayer.css */
+
+.multiplayer-wrapper {
+    width: 95%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 120px;
+    padding-bottom: 50px;
+    position: relative;
+    z-index: 10;
+}
+
+/* --- LOBBY UI --- */
+.lobby-container {
+    background: linear-gradient(to bottom, #0f172a, #1e293b); /* Nền tối đậm chất game */
+    border: 2px solid #475569; /* Viền xám xanh */
+    box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.5);
+    border-radius: 10px; /* Bo góc ít hơn, cứng cáp hơn */
+    padding: 30px;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column; /* Xếp dọc: Header -> Players -> Chat/Actions */
+    gap: 20px;
+    animation: fadeInDown 0.5s ease;
+    position: relative;
+}
+
+.lobby-left { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.lobby-right { flex: 1; display: flex; flex-direction: column; }
+
+.lobby-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.room-input {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.3);
+    color: white;
+    font-size: 1rem;
+    flex: 1;
+}
+
+.player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.05);
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: 0.2s;
+}
+.player-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.btn-icon {
+    background: transparent; border: none; color: #94a3b8; cursor: pointer; transition: 0.2s; padding: 5px;
+}
+.btn-icon:hover { color: white; transform: scale(1.1); }
+.btn-icon.small { font-size: 0.9rem; }
+
+/* --- FRIENDS SECTION --- */
+.friends-panel {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    width: 100%;
+}
+.friends-list {
+    display: flex; flex-direction: column; gap: 8px; margin-top: 10px;
+    max-height: 150px; overflow-y: auto;
+}
+.friend-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px; border-radius: 8px;
+    background: rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+.friend-item:hover { background: rgba(56, 189, 248, 0.1); }
+.friend-status {
+    width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
+    margin-left: auto;
+}
+
+/* --- CHAT UI --- */
+.chat-box {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    height: 200px; /* Chat thấp hơn để nhường chỗ cho Cards */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-top: 0;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+}
+
+.chat-msg { font-size: 0.95rem; color: #cbd5e1; word-break: break-word; }
+.chat-msg strong { color: #38bdf8; margin-right: 5px; }
+
+.chat-input-area { display: flex; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+.chat-input { flex: 1; background: transparent; border: none; padding: 15px; color: white; outline: none; }
+.btn-send { background: rgba(56, 189, 248, 0.1); border: none; color: #38bdf8; padding: 0 20px; cursor: pointer; transition: 0.2s; font-weight: 600; }
+.btn-send:hover { background: rgba(56, 189, 248, 0.3); }
+
+.typing-indicator {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-style: italic;
+    padding: 5px 15px;
+    height: 25px; /* Cố định chiều cao để không bị nhảy layout */
+}
+
+.btn-invite {
+    background: transparent;
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: 0.2s;
+}
+.btn-invite:hover { background: rgba(56, 189, 248, 0.1); }
+
+/* --- READY STATUS --- */
+.ready-status {
+    /* Đã chuyển sang .card-status */
+    display: none; 
+}
+
+#btnReady.is-ready {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+    border: 1px solid #4ade80;
+}
+
+/* --- FRIEND ADD INPUT --- */
+.add-friend-box {
+    display: flex; gap: 5px; margin: 10px 0;
+}
+.friend-input {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px;
+    padding: 5px 10px;
+    color: white;
+    font-size: 0.9rem;
+}
+
+/* --- CHART --- */
+.mp-chart-container {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 15px;
+    margin-top: 20px;
+    height: 300px;
+    position: relative;
+}
+.mp-chart-container canvas { width: 100%; height: 100%; }
+
+@media (max-width: 900px) {
+    .lobby-container { flex-direction: column; }
+}
+
+/* --- NEW BUTTONS --- */
+.btn-ranked {
+    background: linear-gradient(180deg, #fcd34d 0%, #d97706 100%); /* Vàng kim loại */
+    color: white;
+    border: 2px solid #fffbeb;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    box-shadow: 0 5px 15px rgba(217, 119, 6, 0.5);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.btn-ranked:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6);
+}
+
+.btn-quick {
+    background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+    color: white;
+    border: 2px solid #dbeafe;
+    box-shadow: 0 5px 15px rgba(37, 99, 235, 0.5);
+    font-weight: 700;
+}
+.btn-quick:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+}

@@ -25,7 +25,11 @@ export async function registerUser(name, email, password) {
         await sendEmailVerification(user);
         
         await saveUserToFirestore(user, name);
-        return { success: true, user };
+        
+        // Đăng xuất ngay để bắt buộc xác thực
+        await signOut(auth);
+        
+        return { success: true, user, message: "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản." };
     } catch (error) {
         return { success: false, message: getErrorMessage(error.code) };
     }
@@ -35,7 +39,14 @@ export async function registerUser(name, email, password) {
 export async function loginUser(email, password) {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        return { success: true, user: userCredential.user };
+        const user = userCredential.user;
+
+        if (!user.emailVerified) {
+            await signOut(auth);
+            return { success: false, isUnverified: true, message: "Vui lòng xác thực email trước khi đăng nhập. Kiểm tra hộp thư của bạn." };
+        }
+
+        return { success: true, user: user };
     } catch (error) {
         return { success: false, message: getErrorMessage(error.code) };
     }
@@ -104,15 +115,35 @@ export async function resetPassword(email) {
     }
 }
 
+// --- 6. GỬI LẠI EMAIL XÁC THỰC (MỚI) ---
+export async function resendVerification(email, password) {
+    try {
+        // Cần đăng nhập lại để lấy user object
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        if (user.emailVerified) return { success: false, message: "Tài khoản này đã được xác thực rồi!" };
+
+        await sendEmailVerification(user);
+        await signOut(auth); // Đăng xuất ngay sau khi gửi
+        return { success: true, message: "Đã gửi lại email xác thực. Vui lòng kiểm tra hộp thư (cả mục Spam)." };
+    } catch (error) {
+        return { success: false, message: getErrorMessage(error.code) };
+    }
+}
+
 // --- HELPER: LƯU FIRESTORE ---
 async function saveUserToFirestore(user, name) {
     try {
+        // Generate random 8-digit ID
+        const shortId = Math.floor(10000000 + Math.random() * 90000000).toString();
         await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
             name: name,
             email: user.email,
             photoURL: user.photoURL || "",
             createdAt: new Date().toISOString(),
+            shortId: shortId,
             role: 'member',
             wpm_best: 0,
             matches_played: 0

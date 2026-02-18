@@ -5,7 +5,7 @@ import { auth } from '../firebase/config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { renderNavbar } from '../components/navbar.js';
 import { requireAuth } from '../auth-guard.js';
-import { saveGameScore, renderLeaderboardUI, saveStarProgress, fetchUserProgress } from '../firebase/db.js';
+import { saveGameScore, saveStarProgress, fetchUserProgress } from '../firebase/db.js';
 
 // 0. BẢO VỆ TRANG (Chuyển hướng nếu chưa đăng nhập)
 requireAuth();
@@ -28,7 +28,12 @@ const state = {
     startTime: null,
     totalTyped: 0,
     totalErrors: 0,
-    lang: localStorage.getItem('language') || 'en'
+    lang: localStorage.getItem('language') || 'en',
+    soundEnabled: localStorage.getItem('typingSound') === 'true', // Trạng thái âm thanh
+    zenMode: false, // Trạng thái Zen Mode
+    smoothCaret: localStorage.getItem('smoothCaret') === 'true',
+    heatmap: {}, 
+    heatmapEnabled: false
 };
 
 // Lấy element an toàn (tránh lỗi null)
@@ -90,6 +95,33 @@ function switchMode(mode, userId = null) {
     }
 }
 
+function updateKeyboardHeatmap() {
+    // Reset heatmap classes
+    document.querySelectorAll('.key').forEach(k => {
+        k.classList.remove('heat-1', 'heat-2', 'heat-3', 'heat-4', 'heat-5');
+    });
+
+    if (!state.heatmapEnabled) return;
+
+    Object.keys(state.heatmap).forEach(char => {
+        const count = state.heatmap[char];
+        let heatClass = '';
+        if (count >= 10) heatClass = 'heat-5';
+        else if (count >= 7) heatClass = 'heat-4';
+        else if (count >= 5) heatClass = 'heat-3';
+        else if (count >= 3) heatClass = 'heat-2';
+        else if (count >= 1) heatClass = 'heat-1';
+
+        if (heatClass) {
+            // Tìm phím và add class
+            let keyEl = null;
+            try {
+                keyEl = document.querySelector(`.key[data-key="${CSS.escape(char)}"]`);
+            } catch(e) {}
+            if (keyEl) keyEl.classList.add(heatClass);
+        }
+    });
+}
 function hideAllPanels() {
     if(els.dashboard) els.dashboard.style.display = 'none';
     if(els.gameArea) els.gameArea.style.display = 'none';
@@ -97,6 +129,7 @@ function hideAllPanels() {
     if(els.minigamePanel) els.minigamePanel.style.display = 'none';
     if(els.customPanel) els.customPanel.style.display = 'none';
     if(els.navControls) els.navControls.style.display = 'none';
+    
     if(els.resultOverlay) els.resultOverlay.classList.remove('active');
     closeModal();
 }
@@ -297,6 +330,7 @@ function startLesson(lesson, duration) {
     state.isTyping = false;
     if(els.input) els.input.value = "";
     
+
     let text = "";
     if (lesson.type === 'custom') text = lesson.text;
     else if (lesson.text) text = lesson.text;
@@ -325,7 +359,11 @@ function renderText(text) {
         state.charSpans.push(span);
     });
 
-    if (state.charSpans.length > 0) state.charSpans[0].classList.add("active");
+    if (state.charSpans.length > 0) {
+        state.charSpans[0].classList.add("active");
+        // Cập nhật vị trí con trỏ mượt ban đầu
+        if (state.smoothCaret) updateSmoothCaret();
+    }
 }
 
 function handleTyping(e) {
@@ -341,6 +379,10 @@ function handleTyping(e) {
     const inputChars = els.input.value.split("");
     const typedChar = inputChars[state.charIndex];
     const currSpan = state.charSpans[state.charIndex];
+
+    // --- PLAY SOUND ---
+    if (state.soundEnabled) playMechanicalClick();
+    // ------------------
 
     if (typedChar == null) {
         // Backspace
@@ -360,6 +402,10 @@ function handleTyping(e) {
             state.mistakes++;
             state.totalErrors++;
             currSpan.classList.add("incorrect");
+            
+            // --- HEATMAP LOGIC ---
+            const expectedChar = currSpan.innerText.toLowerCase();
+            state.heatmap[expectedChar] = (state.heatmap[expectedChar] || 0) + 1;
         }
         
         currSpan.classList.remove("active");
@@ -374,21 +420,63 @@ function handleTyping(e) {
                 els.display.scrollTop = nextSpan.offsetTop - 50;
             }
             updateKeyboardHints(state.charSpans[state.charIndex].innerText);
+            if (state.smoothCaret) updateSmoothCaret();
         } else {
             finishGame();
         }
     }
     updateStatsUI();
+    
+    if (state.heatmapEnabled) updateKeyboardHeatmap();
+}
+
+// --- SMOOTH CARET LOGIC ---
+function updateSmoothCaret() {
+    let caret = document.getElementById('smoothCaret');
+    if (!caret) {
+        caret = document.createElement('div');
+        caret.id = 'smoothCaret';
+        // Áp dụng style hiện tại
+        const style = localStorage.getItem('cursorStyle') || 'underscore';
+        caret.className = `cursor-${style}`;
+        els.display.appendChild(caret);
+    }
+
+    const activeSpan = state.charSpans[state.charIndex];
+    if (activeSpan) {
+        // Tính toán vị trí tương đối trong khung gõ
+        const left = activeSpan.offsetLeft;
+        const top = activeSpan.offsetTop;
+        const width = activeSpan.offsetWidth;
+        const height = activeSpan.offsetHeight;
+
+        caret.style.left = left + 'px';
+        caret.style.top = top + 'px';
+        
+        // Cập nhật kích thước nếu là Block hoặc Underscore (Bar có width cố định trong CSS)
+        if (caret.classList.contains('cursor-block') || caret.classList.contains('cursor-underscore')) {
+            caret.style.width = width + 'px';
+        }
+        caret.style.height = height + 'px';
+    }
 }
 
 function runTimer() {
     if (state.maxTime === 0) {
         state.timeLeft++;
         updateTimeDisplay(state.timeLeft);
+        // Update Chart Data (Mỗi giây)
+        if (state.currentMode === 'multiplayer') {
+            updateWPMChart(state.timeLeft); // Dùng thời gian trôi qua làm trục X
+        }
     } else {
         if (state.timeLeft > 0) {
             state.timeLeft--;
             updateTimeDisplay(state.timeLeft);
+            // Update Chart Data
+            if (state.currentMode === 'multiplayer') {
+                updateWPMChart(state.maxTime - state.timeLeft);
+            }
         } else {
             finishGame();
         }
@@ -510,23 +598,7 @@ function finishGame() {
         const wpmVal = parseInt(els.wpm?.innerText || 0);
         const accVal = parseInt(els.acc?.innerText || 0); // Lấy số từ chuỗi "100%"
         const mode = state.currentMode;
-        saveGameScore(mode, wpmVal, accVal).then(() => {
-            // Refresh lại bảng xếp hạng sau khi lưu
-            // --- HIỂN THỊ LEADERBOARD TRONG BẢNG KẾT QUẢ ---
-            const card = els.resultOverlay.querySelector('.result-card');
-            if (card) {
-                let lbContainer = document.getElementById('resultLb');
-                if (!lbContainer) {
-                    lbContainer = document.createElement('div');
-                    lbContainer.id = 'resultLb';
-                    lbContainer.className = 'lb-list';
-                    lbContainer.style.marginTop = '20px';
-                    lbContainer.style.maxHeight = '150px'; // Giới hạn chiều cao trong modal
-                    card.appendChild(lbContainer);
-                }
-                renderLeaderboardUI(mode, 'resultLb');
-            }
-        });
+        saveGameScore(mode, wpmVal, accVal);
     }
 }
 
@@ -547,6 +619,108 @@ function loadNewText() {
 }
 
 // ======================================================
+// 8. COOL FEATURES (SOUND & ZEN)
+// ======================================================
+
+// --- MECHANICAL KEYBOARD SOUND (Web Audio API) ---
+let audioCtx = null;
+
+function playMechanicalClick() {
+    try {
+        if (!audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) audioCtx = new AudioContext();
+            else return; // Trình duyệt không hỗ trợ
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        // Tạo âm thanh "thock" (tần số thấp, giảm nhanh)
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime); // Tần số trầm
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+
+        // Volume envelope (Attack nhanh, Decay nhanh)
+        const vol = (parseInt(localStorage.getItem('gameVolume') || 80) / 100) * 0.5;
+        gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+    } catch (e) {
+        console.warn("Audio Error:", e);
+    }
+}
+
+function toggleSound() {
+    state.soundEnabled = !state.soundEnabled;
+    localStorage.setItem('typingSound', state.soundEnabled);
+    updateControlButtons();
+    if(state.soundEnabled) playMechanicalClick(); // Test sound
+}
+
+function toggleZenMode() {
+    state.zenMode = !state.zenMode;
+    if (state.zenMode) {
+        document.body.classList.add('zen-mode');
+    } else {
+        document.body.classList.remove('zen-mode');
+    }
+    updateControlButtons();
+}
+
+function toggleHeatmap() {
+    state.heatmapEnabled = !state.heatmapEnabled;
+    updateControlButtons();
+    updateKeyboardHeatmap(); // Refresh ngay
+}
+
+function updateControlButtons() {
+    const soundBtn = document.getElementById('btnSound');
+    const zenBtn = document.getElementById('btnZen');
+    
+    if(soundBtn) {
+        soundBtn.classList.toggle('active', state.soundEnabled);
+        soundBtn.innerHTML = state.soundEnabled ? '<i class="fas fa-volume-up"></i> Sound On' : '<i class="fas fa-volume-mute"></i> Sound Off';
+    }
+    
+    if(zenBtn) {
+        zenBtn.classList.toggle('active', state.zenMode);
+    }
+    
+    const heatBtn = document.getElementById('btnHeatmap');
+    if(heatBtn) {
+        heatBtn.classList.toggle('active', state.heatmapEnabled);
+        heatBtn.innerHTML = state.heatmapEnabled ? '<i class="fas fa-fire"></i> Heatmap On' : '<i class="fas fa-fire-alt"></i> Heatmap Off';
+    }
+}
+
+function applyCursorSettings() {
+    const color = localStorage.getItem('cursorColor');
+    const style = localStorage.getItem('cursorStyle') || 'underscore'; // Default: underscore
+    const font = localStorage.getItem('typingFont');
+    const isSmooth = localStorage.getItem('smoothCaret') === 'true';
+
+    if (color) {
+        document.documentElement.style.setProperty('--cursor-color', color);
+    }
+    if (font) {
+        document.documentElement.style.setProperty('--typing-font', font);
+    }
+
+    // Áp dụng class kiểu con trỏ vào khung gõ
+    if (els.display) {
+        els.display.classList.remove('cursor-underscore', 'cursor-block', 'cursor-bar');
+        els.display.classList.add(`cursor-${style}`);
+    }
+}
+
+// ======================================================
 // 5. INITIALIZATION & EXPORT WINDOW
 // ======================================================
 
@@ -561,6 +735,8 @@ window.setPresetTime = setPresetTime;
 window.restartCurrent = restartCurrent;
 window.loadNewText = loadNewText;
 window.nextAction = loadNewText;
+window.toggleSound = toggleSound;
+window.toggleZenMode = toggleZenMode;
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -603,12 +779,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- THÊM NÚT VÀO NAV CONTROLS ---
+    if (els.navControls) {
+        // Xóa nội dung cũ nếu cần hoặc append thêm
+        // Thêm nút Sound và Zen vào thanh điều khiển hiện tại
+        const soundBtn = document.createElement('button');
+        soundBtn.id = 'btnSound';
+        soundBtn.className = 'nav-control-btn';
+        soundBtn.onclick = toggleSound;
+        
+        const zenBtn = document.createElement('button');
+        zenBtn.id = 'btnZen';
+        zenBtn.className = 'nav-control-btn';
+        zenBtn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i> Zen Mode';
+        zenBtn.onclick = toggleZenMode;
+
+        const heatBtn = document.createElement('button');
+        heatBtn.id = 'btnHeatmap';
+        heatBtn.className = 'nav-control-btn';
+        heatBtn.onclick = toggleHeatmap;
+
+        // Chèn vào đầu danh sách nút
+        els.navControls.insertBefore(heatBtn, els.navControls.firstChild);
+        els.navControls.insertBefore(zenBtn, els.navControls.firstChild);
+        els.navControls.insertBefore(soundBtn, els.navControls.firstChild);
+        
+        updateControlButtons();
+    }
+
     // Chạy mặc định
     switchMode('beginner'); 
     
     initStars(); // Tạo hiệu ứng sao
     renderNavbar(); // Sử dụng hàm chuẩn từ component
     applyGlobalLanguage(state.lang);
+    loadCustomFont().then(() => applyCursorSettings()); // Load font trước khi áp dụng setting
 
     // Lắng nghe Auth để hiển thị Leaderboard
     onAuthStateChanged(auth, async (user) => {
@@ -722,6 +927,12 @@ function getFingerName(id) {
     return 'thumb';
 }
 
+// Map ký tự đặc biệt sang phím gốc (để highlight đúng phím trên bàn phím ảo)
+const specialKeyMap = {
+    '!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8', '(': '9', ')': '0',
+    '_': '-', '+': '=', '{': '[', '}': ']', '|': '\\', ':': ';', '"': "'", '<': ',', '>': '.', '?': '/', '~': '`'
+};
+
 function updateKeyboardHints(char) {
     if (!char) return;
     const lowerChar = char.toLowerCase();
@@ -730,8 +941,14 @@ function updateKeyboardHints(char) {
     document.querySelectorAll('.key.active, .finger.active').forEach(el => el.classList.remove('active'));
 
     // Highlight Key
-    const keyEl = document.querySelector(`.key[data-key="${lowerChar}"]`) 
-               || document.querySelector(`.key[data-key="${char}"]`); // Fallback
+    let targetKey = lowerChar;
+    if (specialKeyMap[char]) targetKey = specialKeyMap[char];
+
+    // Sử dụng CSS.escape để tránh lỗi cú pháp khi gặp ký tự " hoặc '
+    let keyEl = null;
+    try {
+        keyEl = document.querySelector(`.key[data-key="${CSS.escape(targetKey)}"]`);
+    } catch (e) { console.error("Key selector error:", e); }
     
     if (keyEl) {
         keyEl.classList.add('active');

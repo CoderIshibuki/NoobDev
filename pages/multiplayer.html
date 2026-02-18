@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Arena - NoobDev</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/typing.css"> <!-- Tái sử dụng style bàn phím/input -->
+    <link rel="stylesheet" href="../assets/css/multiplayer.css">
+</head>
+<body>
+    <div class="stars" id="starsContainer"></div>
+    <div class="moon"></div>
+    <div class="clouds">
+        <div class="cloud cloud1"></div>
+        <div class="cloud cloud2"></div>
+    </div>
+
+    <nav></nav>
+
+    <div class="multiplayer-wrapper">
+        <!-- 1. LOBBY SECTION -->
+        <div id="lobbySection" class="lobby-container">
+            <!-- Nội dung Lobby sẽ được JS render -->
+            <div class="loading">Loading Arena...</div>
+        </div>
+
+        <!-- 2. GAME SECTION (Ẩn mặc định) -->
+        <div id="gameSection" style="display: none;">
+            <div class="game-header">
+                <div class="stats-bar">
+                    <div class="stat-group"><div class="stat-label" data-translate="statWPM">WPM</div><div class="stat-value" id="wpm">0</div></div>
+                    <div class="stat-group"><div class="stat-label" data-translate="statTime">Time</div><div class="stat-value" id="timeLeft">00:00</div></div>
+                    <div class="stat-group"><div class="stat-label" data-translate="statAcc">Accuracy</div><div class="stat-value" id="accuracy">100%</div></div>
+                </div>
+            </div>
+
+            <div class="typing-box-wrapper" id="typingWrapper">
+                <input type="text" id="inputField" class="input-field" autocomplete="off">
+                <div class="typing-box" id="quoteDisplay"></div>
+                <div class="focus-overlay" id="focusOverlay">
+                    <div class="start-msg"><i class="fas fa-mouse-pointer"></i> Click to Focus</div>
+                </div>
+            </div>
+
+            <!-- Keyboard & Hands -->
+            <div class="keyboard-container"></div>
+
+            <!-- Live Chart -->
+            <div class="mp-chart-container">
+                <canvas id="mpChart"></canvas>
+            </div>
+            
+            <!-- Controls -->
+            <div class="nav-controls" style="margin-top: 20px;">
+                <button class="nav-control-btn" id="btnSound"><i class="fas fa-volume-up"></i> Sound</button>
+                <button class="nav-control-btn" onclick="location.reload()"><i class="fas fa-sign-out-alt"></i> Leave Match</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-card">
+            <h2 data-translate="gameOver">Game Over</h2>
+            <div class="result-stats">
+                <div class="res-item">
+                    <div class="big-num" id="finalWpm">0</div>
+                    <span data-translate="statWPM">WPM</span>
+                </div>
+                <div class="res-item">
+                    <div class="big-num" id="finalAcc">0%</div>
+                    <span data-translate="statAcc">Accuracy</span>
+                </div>
+            </div>
+            <div class="result-actions">
+                <button class="cta-button" onclick="location.reload()">Back to Lobby</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script type="module" src="../assets/js/pages/multiplayer.js"></script>
+</body>
+</html>

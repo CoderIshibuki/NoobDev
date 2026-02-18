@@ -8,6 +8,13 @@ export const translations = {
         // Typing Page UI
         tabBeginner: "Beginner", tabCode: "Code", tabTest: "Speed Test", tabMinigame: "Minigame", tabCustom: "Custom",
         statWPM: "WPM", statAcc: "Accuracy", statTime: "Time",
+        tabMultiplayer: "Multiplayer", btnCreateRoom: "Create Room", btnJoinRoom: "Join Room", lblRoomID: "Room ID", placeholderRoomID: "Enter Room ID...", btnStartMatch: "Start Match", lblWaiting: "Waiting for host...",
+        lblChat: "Lobby Chat", btnSend: "Send", placeholderChat: "Say hello...", lblLiveChart: "Live WPM Race",
+        lblPlayers: "Players in Room", lblFriends: "Friends Online", btnInvite: "Copy Invite Link", msgLinkCopied: "Link copied to clipboard!",
+        msgRoomFull: "Room is full (Max 5 players)!", msgKicked: "You have been kicked from the room.", btnKick: "Kick", confirmKick: "Are you sure you want to kick this player?",
+        btnReady: "Ready", btnNotReady: "Not Ready", lblMyID: "My ID", btnAddFriend: "Add Friend", placeholderFriendID: "Enter Friend ID", msgFriendAdded: "Friend added!", msgUserNotFound: "User not found!", msgNotAllReady: "All players must be Ready to start!",
+        btnQuickMatch: "Quick Match", btnRanked: "Ranked Match", lblSearching: "Searching...", modeRanked: "Ranked", modeNormal: "Normal",
+        lblTyping: "is typing...",
         btnRestart: "Restart", btnMenu: "Menu",
         
         // Custom Panel
@@ -25,6 +32,12 @@ export const translations = {
         // Settings
         settingsTitle: "Settings", lblDisplayName: "Display Name", lblPhotoUrl: "Avatar URL", lblVolume: "Game Volume", lblEffects: "Background Effects", btnSave: "Save Changes",
         lbTitle: "Your Typing History",
+        lblCursorStyle: "Cursor Style", lblCursorColor: "Cursor Color",
+        optUnderscore: "Underscore", optBlock: "Block", optBar: "Vertical Bar",
+        btnRestore: "Restore Defaults",
+        lblFontFamily: "Font Family", optTypewriter: "Typewriter", optMono: "Monospace", optSerif: "Serif",
+        lblSmoothCaret: "Smooth Caret", lblCustomFont: "Custom Font", btnUploadFont: "Upload Font (.ttf/.woff)",
+        msgFontLoaded: "Custom font loaded successfully!", msgFontError: "Error loading font. File might be too large.",
         
         // Login/Signup
         loginTitle: "Login", signupTitle: "Sign Up", emailPlaceholder: "Email Address", passPlaceholder: "Password", namePlaceholder: "Full Name",
@@ -105,6 +118,13 @@ export const translations = {
         // Typing Page UI
         tabBeginner: "Cơ bản", tabCode: "Code", tabTest: "Kiểm tra", tabMinigame: "Minigame", tabCustom: "Tùy chỉnh",
         statWPM: "Tốc độ", statAcc: "Chính xác", statTime: "Thời gian",
+        tabMultiplayer: "Đấu trường", btnCreateRoom: "Tạo phòng", btnJoinRoom: "Vào phòng", lblRoomID: "Mã phòng", placeholderRoomID: "Nhập mã phòng...", btnStartMatch: "Bắt đầu", lblWaiting: "Đang chờ chủ phòng...",
+        lblChat: "Trò chuyện", btnSend: "Gửi", placeholderChat: "Nói gì đó...", lblLiveChart: "Đua tốc độ",
+        lblPlayers: "Người chơi trong phòng", lblFriends: "Bạn bè trực tuyến", btnInvite: "Sao chép Link mời", msgLinkCopied: "Đã sao chép Link!",
+        msgRoomFull: "Phòng đã đầy (Tối đa 5 người)!", msgKicked: "Bạn đã bị đuổi khỏi phòng.", btnKick: "Đuổi", confirmKick: "Bạn có chắc muốn đuổi người chơi này?",
+        btnReady: "Sẵn sàng", btnNotReady: "Hủy sẵn sàng", lblMyID: "ID của tôi", btnAddFriend: "Kết bạn", placeholderFriendID: "Nhập ID bạn bè", msgFriendAdded: "Đã thêm bạn!", msgUserNotFound: "Không tìm thấy người dùng!", msgNotAllReady: "Tất cả người chơi phải Sẵn sàng mới được bắt đầu!",
+        btnQuickMatch: "Đấu thường", btnRanked: "Đấu hạng", lblSearching: "Đang tìm...", modeRanked: "Xếp hạng", modeNormal: "Thường",
+        lblTyping: "đang gõ...",
         btnRestart: "Làm lại", btnMenu: "Menu",
         
         // Custom Panel
@@ -122,6 +142,12 @@ export const translations = {
         // Settings
         settingsTitle: "Cài đặt", lblDisplayName: "Tên hiển thị", lblPhotoUrl: "Đường dẫn Avatar", lblVolume: "Âm lượng game", lblEffects: "Hiệu ứng nền", btnSave: "Lưu thay đổi",
         lbTitle: "Lịch sử đấu",
+        lblCursorStyle: "Kiểu con trỏ", lblCursorColor: "Màu con trỏ",
+        optUnderscore: "Gạch dưới", optBlock: "Khối", optBar: "Thanh dọc",
+        btnRestore: "Khôi phục mặc định",
+        lblFontFamily: "Phông chữ", optTypewriter: "Máy đánh chữ", optMono: "Đơn cách", optSerif: "Có chân",
+        lblSmoothCaret: "Con trỏ mượt", lblCustomFont: "Phông chữ riêng", btnUploadFont: "Tải phông (.ttf/.woff)",
+        msgFontLoaded: "Đã tải phông chữ thành công!", msgFontError: "Lỗi tải phông. File có thể quá lớn.",
         
         // Login/Signup
         loginTitle: "Đăng nhập", signupTitle: "Đăng ký", emailPlaceholder: "Địa chỉ Email", passPlaceholder: "Mật khẩu", namePlaceholder: "Họ và tên",

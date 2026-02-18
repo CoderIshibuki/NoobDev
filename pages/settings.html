@@ -80,6 +80,41 @@
                     </div>
 
                     <div class="section-title" style="margin-top: 30px;"><i class="fas fa-sliders-h"></i> App Preferences (developing)</div>
+
+                    <!-- Thêm vào settings.html -->
+<div class="form-group">
+    <label id="lblFontFamily">Font Family</label>
+    <select id="fontFamilyInput" class="form-control">
+        <option value="'Courier New', Courier, monospace" data-translate="optTypewriter">Typewriter</option>
+        <option value="'Consolas', 'Monaco', 'Lucida Console', monospace" data-translate="optMono">Monospace</option>
+        <option value="'Georgia', 'Times New Roman', serif" data-translate="optSerif">Serif</option>
+    </select>
+    
+    <div class="font-upload-zone" onclick="document.getElementById('fontFileInput').click()">
+        <input type="file" id="fontFileInput" accept=".ttf, .woff, .woff2" style="display: none;">
+        <div class="upload-content">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span id="fontFileName" data-translate="btnUploadFont">Upload Font (.ttf/.woff)</span>
+        </div>
+    </div>
+</div>
+<div class="form-group">
+    <label id="lblCursorStyle">Cursor Style</label>
+    <select id="cursorStyleInput" class="form-control">
+        <option value="underscore" data-translate="optUnderscore">Underscore</option>
+        <option value="block" data-translate="optBlock">Block</option>
+        <option value="bar" data-translate="optBar">Vertical Bar</option>
+    </select>
+</div>
+<div class="form-group">
+    <label id="lblCursorColor">Cursor Color</label>
+    <input type="color" id="cursorColorInput" class="form-control">
+</div>
+<div class="form-group">
+    <label>Preview</label>
+    <div id="cursorPreviewBox" class="cursor-preview-box"><span class="preview-text">NoobDev</span><span class="preview-cursor"></span></div>
+</div>
+
                     
                     <div class="pref-item">
                         <div class="pref-info">
@@ -94,6 +129,16 @@
 
                     <div class="pref-item">
                         <div class="pref-info">
+                            <h4 id="lblSmoothCaret">Smooth Caret</h4>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleSmoothCaret">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="pref-item">
+                        <div class="pref-info">
                             <h4>Game Volume</h4>
                             <p>Adjust sound effects</p>
                         </div>
@@ -101,6 +146,7 @@
                     </div>
 
                     <div class="btn-group">
+                        <button type="button" class="btn btn-restore" id="btnRestore">Restore Defaults</button>
                         <a href="../index.html" class="btn btn-cancel">Cancel</a>
                         <button type="submit" class="btn btn-save">Save Changes</button>
                     </div>
