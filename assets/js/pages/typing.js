@@ -4,6 +4,11 @@ import { translations } from '../data/translations.js';
 import { auth } from '../firebase/config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { renderNavbar } from '../components/navbar.js';
+import { requireAuth } from '../auth-guard.js';
+import { saveGameScore, renderLeaderboardUI, saveStarProgress, fetchUserProgress } from '../firebase/db.js';
+
+// 0. BẢO VỆ TRANG (Chuyển hướng nếu chưa đăng nhập)
+requireAuth();
 
 // ======================================================
 // 1. GLOBAL STATE & DOM ELEMENTS
@@ -55,7 +60,7 @@ const els = {
 // 2. NAVIGATION & UI LOGIC
 // ======================================================
 
-function switchMode(mode) {
+function switchMode(mode, userId = null) {
     state.currentMode = mode;
     
     // Update Tabs UI
@@ -69,13 +74,13 @@ function switchMode(mode) {
 
     if(mode === 'beginner' && els.dashboard) {
         const data = state.lang === 'vi' ? lessonDataVi : lessonData;
-        if (data) renderDashboard(data);
+        if (data) renderDashboard(data, false, '', userId);
         els.dashboard.style.display = 'flex';
     } else if (mode === 'code' && els.dashboard) {
-        renderDashboard(codeData, true, 'code-card');
+        renderDashboard(codeData, true, 'code-card', userId);
         els.dashboard.style.display = 'flex';
     } else if (mode === 'test' && els.dashboard) {
-        renderDashboard(testData, false, 'test-card');
+        renderDashboard(testData, false, 'test-card', userId);
         els.dashboard.style.display = 'flex';
     } else if (mode === 'minigame' && els.minigamePanel) {
         els.minigamePanel.style.display = 'block';
@@ -101,7 +106,7 @@ function goToMenu() {
     switchMode(state.currentMode);
 }
 
-function renderDashboard(data, isCode = false, extraClass = '') {
+function renderDashboard(data, isCode = false, extraClass = '', userId = null) {
     if (!els.dashboard) return;
     els.dashboard.innerHTML = "";
     
@@ -121,7 +126,11 @@ function renderDashboard(data, isCode = false, extraClass = '') {
             const iconHTML = `<i class="${lesson.icon} lesson-icon" style="${lesson.color ? 'color:'+lesson.color : ''}"></i>`;
 
             // --- Logic hiển thị sao đã lưu (Mới) ---
-            const savedStars = parseInt(localStorage.getItem(`lesson_stars_${lesson.id}`) || 0);
+            let savedStars = 0;
+            const currentUid = userId || (auth.currentUser ? auth.currentUser.uid : null);
+            if (currentUid && lesson.id) {
+                savedStars = parseInt(localStorage.getItem(`lesson_stars_${currentUid}_${lesson.id}`) || 0);
+            }
             let starsHTML = '';
             if (savedStars > 0) {
                 starsHTML = '<div class="lesson-stars">';
@@ -430,11 +439,14 @@ function finishGame() {
     const starCount = Math.floor(accVal / 20);
     
     // --- Lưu kỷ lục sao vào LocalStorage (Mới) ---
-    if (state.activeLesson && state.activeLesson.id) {
-        const key = `lesson_stars_${state.activeLesson.id}`;
+    if (state.activeLesson && state.activeLesson.id && auth.currentUser) {
+        const key = `lesson_stars_${auth.currentUser.uid}_${state.activeLesson.id}`;
         const currentBest = parseInt(localStorage.getItem(key) || 0);
         // Chỉ lưu nếu kết quả mới tốt hơn kết quả cũ
-        if (starCount > currentBest) localStorage.setItem(key, starCount);
+        if (starCount > currentBest) {
+            localStorage.setItem(key, starCount);
+            saveStarProgress(state.activeLesson.id, starCount);
+        }
     }
 
     // --- STREAK LOGIC (NEW) ---
@@ -492,6 +504,30 @@ function finishGame() {
     }
     
     if(els.resultOverlay) els.resultOverlay.classList.add('active');
+
+    // --- LƯU KẾT QUẢ VÀO FIRESTORE (MỚI) ---
+    if (auth.currentUser) {
+        const wpmVal = parseInt(els.wpm?.innerText || 0);
+        const accVal = parseInt(els.acc?.innerText || 0); // Lấy số từ chuỗi "100%"
+        const mode = state.currentMode;
+        saveGameScore(mode, wpmVal, accVal).then(() => {
+            // Refresh lại bảng xếp hạng sau khi lưu
+            // --- HIỂN THỊ LEADERBOARD TRONG BẢNG KẾT QUẢ ---
+            const card = els.resultOverlay.querySelector('.result-card');
+            if (card) {
+                let lbContainer = document.getElementById('resultLb');
+                if (!lbContainer) {
+                    lbContainer = document.createElement('div');
+                    lbContainer.id = 'resultLb';
+                    lbContainer.className = 'lb-list';
+                    lbContainer.style.marginTop = '20px';
+                    lbContainer.style.maxHeight = '150px'; // Giới hạn chiều cao trong modal
+                    card.appendChild(lbContainer);
+                }
+                renderLeaderboardUI(mode, 'resultLb');
+            }
+        });
+    }
 }
 
 function restartCurrent() {
@@ -525,6 +561,7 @@ window.setPresetTime = setPresetTime;
 window.restartCurrent = restartCurrent;
 window.loadNewText = loadNewText;
 window.nextAction = loadNewText;
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // Sự kiện Gõ phím
@@ -572,6 +609,24 @@ document.addEventListener('DOMContentLoaded', () => {
     initStars(); // Tạo hiệu ứng sao
     renderNavbar(); // Sử dụng hàm chuẩn từ component
     applyGlobalLanguage(state.lang);
+
+    // Lắng nghe Auth để hiển thị Leaderboard
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            // --- SYNC PROGRESS TỪ FIREBASE VỀ LOCALSTORAGE ---
+            const progress = await fetchUserProgress();
+            if (progress) {
+                for (const [lid, stars] of Object.entries(progress)) {
+                     const key = `lesson_stars_${user.uid}_${lid}`;
+                     const local = parseInt(localStorage.getItem(key) || 0);
+                     if (stars > local) localStorage.setItem(key, stars);
+                }
+            }
+
+            // Refresh lại giao diện dashboard để cập nhật số sao đúng theo user vừa load xong
+            switchMode(state.currentMode, user.uid);
+        }
+    });
 });
 
 // ======================================================
@@ -721,7 +776,7 @@ function initStars() {
     }
 
     container.innerHTML = '';
-    const starCount = 400;
+    const starCount = 200;
     for(let i=0; i<starCount; i++) {
         const star = document.createElement('div');
         star.className = 'star';
@@ -740,13 +795,14 @@ function applyGlobalLanguage(lang) {
     if (!t) return;
 
     // 1. Dịch Navbar (Tìm theo href hoặc class)
-    const navLinks = document.querySelectorAll('.nav-links a');
+    const navLinks = document.querySelectorAll('.nav-links > a');
     navLinks.forEach(link => {
         if(link.href.includes('index.html')) link.innerText = t.navHome;
         if(link.href.includes('about.html')) link.innerText = t.navAbout;
         if(link.href.includes('tips.html')) link.innerText = t.navTips;
         if(link.href.includes('FAQ.html')) link.innerText = t.navFAQ;
         if(link.href.includes('typing.html')) link.innerText = t.navTyping;
+        if(link.href.includes('contact.html')) link.innerText = t.navContact;
     });
 
     // 2. Dịch Tabs
@@ -776,6 +832,10 @@ function applyGlobalLanguage(lang) {
     
     const btnCancel = document.querySelector('.modal-btns .btn-secondary');
     if(btnCancel) btnCancel.innerText = t.btnCancel;
+    
+    // Dịch tiêu đề Leaderboard
+    const lbTitle = document.getElementById('lbTitle');
+    if(lbTitle) lbTitle.innerHTML = `<i class="fas fa-history"></i> ${t.lbTitle}`;
 
     const customInput = document.getElementById('customTextInput');
     if(customInput) customInput.placeholder = t.placeholderCustom;

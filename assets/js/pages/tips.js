@@ -25,7 +25,7 @@ function createStarsDirectly() {
     container.innerHTML = ''; // Xóa sao cũ nếu có
 
     // Tăng số lượng sao lên 400
-    const starCount = 600; 
+    const starCount = 200; 
 
     for(let i=0; i < starCount; i++) {
         const star = document.createElement('div');

@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         forgotLink.addEventListener('click', (e) => {
             e.preventDefault();
             loginForm.classList.remove('active');
-            authTabs.style.display = 'none'; // Ẩn tab Login/Signup cho đỡ rối
+            authTabs.style.display = 'none'; 
             resetForm.classList.add('active');
         });
     }
@@ -192,7 +192,7 @@ function createStarsDirectly() {
     const container = document.getElementById('starsContainer');
     if(!container) return;
     container.innerHTML = '';
-    for(let i=0; i<600; i++) {
+    for(let i=0; i<200; i++) {
         const star = document.createElement('div');
         star.className = 'star';
         const s = Math.random() * 2 + 1;

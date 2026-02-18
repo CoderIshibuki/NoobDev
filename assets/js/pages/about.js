@@ -26,7 +26,7 @@ function createStars() {
     const container = document.getElementById('starsContainer');
     if (!container || container.innerHTML !== "") return; // Tránh tạo trùng
 
-    const starCount = 600;
+    const starCount = 200;
     for (let i = 0; i < starCount; i++) {
         const star = document.createElement('div');
         star.className = 'star';
@@ -51,32 +51,4 @@ window.addEventListener('load', () => {
     createStars();
     // Đợi 0.5s rồi mới bắt đầu gõ chữ
     setTimeout(typeWriter, 500);
-});
-
-// Logic Dropdown (Dùng chung, copy lại cho chắc nếu script.js chưa load kịp)
-document.addEventListener('DOMContentLoaded', () => {
-    const langBtn = document.getElementById('languageBtn');
-    const langMenu = document.getElementById('languageMenu');
-    const userNav = document.getElementById('userProfileNav');
-    
-    if(langBtn) {
-        langBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            langMenu.classList.toggle('active');
-            if(userNav) userNav.classList.remove('active');
-        });
-    }
-
-    if(userNav) {
-        userNav.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userNav.classList.toggle('active');
-            if(langMenu) langMenu.classList.remove('active');
-        });
-    }
-
-    document.addEventListener('click', () => {
-        if(langMenu) langMenu.classList.remove('active');
-        if(userNav) userNav.classList.remove('active');
-    });
 });

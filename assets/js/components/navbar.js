@@ -21,6 +21,7 @@ export function renderNavbar() {
         tips: `${pagesPath}tips.html`,
         faq: `${pagesPath}FAQ.html`,
         typing: `${pagesPath}typing.html`,
+        contact: `${pagesPath}contact.html`,
         login: `${rootPath}login.html`,
         settings: `${pagesPath}settings.html`
     };
@@ -40,6 +41,7 @@ export function renderNavbar() {
             <a href="${p.tips}">${t.navTips}</a>
             <a href="${p.faq}">${t.navFAQ}</a>
             <a href="${p.typing}">${t.navTyping}</a>
+            <a href="${p.contact}">${t.navContact}</a>
             
             <div class="lang-menu-container">
                 <button class="lang-menu-btn" id="langMenuBtn">

@@ -12,15 +12,15 @@ body {
 .game-wrapper {
     position: relative; z-index: 10;
     width: 95%; max-width: 1400px;
-    margin: 40px auto;
-    display: flex; 
+    margin: 40px auto; /* Để game nằm phía trên, không bị căn giữa dọc */
+    display: flex;
     justify-content: center;
-    align-items: flex-start; /* Để game nằm phía trên, không bị căn giữa dọc */
+    align-items: flex-start;
     gap: 30px; /* Khoảng cách giữa game và leaderboard */
     min-height: 85vh;
 }
 
-.game-main-container { 
+.game-main-container {
     flex: 0 1 900px; /* Width tối đa */
     width: 100%; 
     display: flex; justify-content: center; 
@@ -50,16 +50,31 @@ body {
 .game-title { font-size: 3.5rem; margin-bottom: 20px; font-weight: 800; letter-spacing: 5px; color: #fff; text-shadow: 0 0 20px #3b82f6; }
 .neon-text { animation: neonFlicker 2s infinite alternate; }
 
-.difficulty-grid { display: flex; gap: 20px; justify-content: center; margin-top: 40px; }
+.difficulty-grid {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
+}
 .diff-btn {
-    flex: 1; padding: 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.05); cursor: pointer; transition: 0.3s;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    flex: 1;
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    cursor: pointer;
+    transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 .diff-btn h3 { font-size: 1.2rem; color: white; margin-bottom: 5px; }
 .diff-btn span { font-size: 0.9rem; color: #94a3b8; }
 
-.diff-btn:hover { transform: translateY(-5px) scale(1.05); }
+.diff-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+}
 .diff-btn.green:hover { background: rgba(74, 222, 128, 0.2); border-color: #4ade80; box-shadow: 0 0 20px rgba(74, 222, 128, 0.3); }
 .diff-btn.yellow:hover { background: rgba(250, 204, 21, 0.2); border-color: #facc15; box-shadow: 0 0 20px rgba(250, 204, 21, 0.3); }
 .diff-btn.red:hover { background: rgba(248, 113, 113, 0.2); border-color: #f87171; box-shadow: 0 0 20px rgba(248, 113, 113, 0.3); }
@@ -67,7 +82,8 @@ body {
 /* 5. KHU VỰC GAME (GAME AREA) */
 .game-area {
     position: relative; flex-grow: 1; width: 100%;
-    background: rgba(0,0,0,0.3); /* Nền tối hơn cho khu vực chơi */
+    /* Nền tối hơn cho khu vực chơi */
+    background: rgba(0,0,0,0.3);
     border-bottom: 2px solid rgba(59, 130, 246, 0.5);
     overflow: hidden;
 }
@@ -76,14 +92,21 @@ body {
 .falling-block {
     position: absolute; top: -50px; /* Bắt đầu ngoài màn hình */
     background: rgba(30, 41, 59, 0.9);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: white; padding: 8px 15px; border-radius: 6px;
-    font-family: monospace; font-size: 1.1rem; font-weight: bold;
+    border: 1px solid rgba(56, 189, 248, 0.3); /* Vạch đích */
+    color: white;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 1.1rem;
+    font-weight: bold;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     transition: transform 0.1s, border-color 0.1s;
 }
 .falling-block.highlight-target {
-    border-color: #f43f5e; color: #f43f5e; box-shadow: 0 0 15px rgba(244, 63, 94, 0.4); z-index: 10;
+    border-color: #f43f5e;
+    color: #f43f5e;
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+    z-index: 10;
 }
 
 /* Laser Line (Vạch đích) */
@@ -96,7 +119,9 @@ body {
 /* HUD (Điểm & Mạng) */
 .hud-overlay {
     position: absolute; top: 0; left: 0; width: 100%; z-index: 50;
-    display: flex; justify-content: space-between; padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 30px;
     background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
 }
 .score-label { font-size: 0.8rem; color: #94a3b8; display: block; letter-spacing: 2px; }
@@ -107,12 +132,40 @@ body {
 .game-over-title { font-size: 3rem; color: #f43f5e; margin-bottom: 30px; text-shadow: 0 0 30px rgba(244, 63, 94, 0.5); }
 .highlight-score { font-size: 4rem; color: #4ade80; margin: 0; }
 .action-buttons { display: flex; gap: 20px; justify-content: center; }
-.cta-button { padding: 15px 50px; font-size: 1.2rem; border-radius: 50px; border:none; cursor:pointer; font-weight:800; background: linear-gradient(135deg, #4ade80, #22c55e); color: #022c22; transition:0.3s; pointer-events: auto; }
-.cta-button:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(74, 222, 128, 0.4); }
+.cta-button {
+    padding: 15px 50px;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    border:none;
+    cursor:pointer;
+    font-weight:800;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: #022c22;
+    transition:0.3s;
+    pointer-events: auto;
+}
+.cta-button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(74, 222, 128, 0.4);
+}
 .cta-button.ghost { background: transparent; border: 2px solid rgba(255,255,255,0.2); color: white; }
-.cta-button.ghost:hover { background: rgba(255,255,255,0.1); border-color: white; }
-.exit-btn { position: absolute; top: 20px; right: 20px; color: rgba(255,255,255,0.4); text-decoration: none; font-size: 1.5rem; transition: 0.3s; }
-.exit-btn:hover { color: white; transform: rotate(90deg); }
+.cta-button.ghost:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: white;
+}
+.exit-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: rgba(255,255,255,0.4);
+    text-decoration: none;
+    font-size: 1.5rem;
+    transition: 0.3s;
+}
+.exit-btn:hover {
+    color: white;
+    transform: rotate(90deg);
+}
 .hidden { display: none !important; }
 
 @keyframes neonFlicker { 0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; text-shadow: 0 0 20px #3b82f6; } 20%, 24%, 55% { opacity: 0.5; text-shadow: none; } }
@@ -141,7 +194,8 @@ body {
 }
 
 .lb-item {
-    display: flex; justify-content: space-between;
+    display: flex;
+    justify-content: space-between;
     padding: 10px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
     font-size: 0.9rem;
@@ -155,4 +209,12 @@ body {
 .rank-2 .lb-rank { color: #c0c0c0; }
 .rank-3 .lb-rank { color: #cd7f32; }
 
-@media (max-width: 1100px) { .game-wrapper { flex-direction: column; align-items: center; } .leaderboard-panel { width: 100%; max-width: 900px; } }
+@media (max-width: 1100px) {
+    .game-wrapper {
+        flex-direction: column;
+        align-items: center;
+    } .leaderboard-panel {
+        width: 100%;
+        max-width: 900px;
+    }
+}

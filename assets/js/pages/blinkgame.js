@@ -189,7 +189,7 @@ function initStars() {
         document.body.prepend(container);
     }
     container.innerHTML = '';
-    for(let i=0; i<400; i++) {
+    for(let i=0; i<200; i++) {
         const star = document.createElement('div');
         star.className = 'star';
         const s = Math.random() * 2 + 1;
@@ -210,9 +210,9 @@ function setupLeaderboard() {
     const lbPanel = document.createElement('div');
     lbPanel.className = 'leaderboard-panel';
     lbPanel.innerHTML = `
-        <h3><i class="fas fa-trophy"></i> Top Players</h3>
+        <h3><i class="fas fa-history"></i> Your Scores</h3>
         <div id="blinkLeaderboard" class="lb-list">
-            <div class="loading">Loading...</div>
+            <div class="loading">Đang tải...</div>
         </div>
     `;
     wrapper.appendChild(lbPanel);

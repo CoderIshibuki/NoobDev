@@ -1,0 +1,136 @@
+<!-- /home/ishibuki/Documents/NoobDev/pages/contact.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - NoobDev</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/contact.css">
+</head>
+<body>
+
+    <!-- Hiệu ứng nền -->
+    <div class="stars" id="starsContainer"></div>
+    <div class="moon">
+        <div class="moon-crater crater1"></div>
+        <div class="moon-crater crater2"></div>
+    </div>
+    <div class="clouds">
+        <div class="cloud cloud1"></div>
+        <div class="cloud cloud2"></div>
+        <div class="cloud cloud3"></div>
+    </div>
+
+    <nav></nav>
+
+    <!-- Thêm Side Menu để hỗ trợ Mobile Navbar (Đồng bộ với các trang khác) -->
+
+    <div class="contact-wrapper">
+        <div class="contact-header">
+            <h1 data-translate="contactTitle">Get in Touch</h1>
+            <p data-translate="contactSubtitle">Have questions or feedback? We'd love to hear from you.</p>
+        </div>
+
+        <div class="contact-container">
+            <!-- Cột thông tin -->
+            <div class="contact-info">
+                <h3 data-translate="contactInfoTitle">Contact Information</h3>
+                <p class="info-desc" data-translate="contactInfoDesc">Fill up the form and our Team will get back to you within 24 hours.</p>
+                
+                <div class="info-item">
+                    <div class="icon-box"><i class="fas fa-envelope"></i></div>
+                    <div class="info-text">
+                        <span class="label">Email</span>
+                        <a href="mailto:tranvuhoaphat@gmail.com" class="value">support@noobdev.com</a>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="icon-box"><i class="fab fa-discord"></i></div>
+                    <div class="info-text">
+                        <span class="label">Discord</span>
+                        <a href="https://discord.gg/EBzav8yjQA" class="value" target="_blank">NoobDev Community</a>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="icon-box"><i class="fas fa-map-marker-alt"></i></div>
+                    <div class="info-text">
+                        <span class="label">Location</span>
+                        <span class="value">Ho Chi Minh City, Vietnam</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Cột Form -->
+            <div class="contact-form-box">
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label data-translate="lblYourName">Your Name</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="nameInput" required placeholder="John Doe">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="lblEmail">Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="emailInput" required placeholder="john@example.com">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="lblSubject">Subject</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="subjectInput" required placeholder="Bug report, Feature request...">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="lblMessage">Message</label>
+                        <div class="input-wrapper textarea-wrapper">
+                            <textarea id="messageInput" required placeholder="Write your message here..."></textarea>
+                            <i class="fas fa-comment-alt"></i>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="send-btn">
+                        <span data-translate="btnSend">Send Message</span> <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <footer><p>&copy; 2025 NoobDev. Keep Clacking.</p></footer>
+    </div>
+
+    <!-- Container chứa Toast Notification -->
+    <div id="toast-container"></div>
+
+    <script type="module">
+        import { renderNavbar } from '../assets/js/components/navbar.js';
+        import { translations } from '../assets/js/data/translations.js';
+        import '../assets/js/pages/contact.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNavbar();
+            
+            // Dịch nhanh
+            const lang = localStorage.getItem('language') || 'en';
+            const t = translations[lang];
+            if(t) {
+                document.querySelectorAll('[data-translate]').forEach(el => {
+                    const key = el.getAttribute('data-translate');
+                    if(t[key]) el.innerHTML = t[key];
+                });
+            }
+        });
+    </script>
+</body>
+</html>

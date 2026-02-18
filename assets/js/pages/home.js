@@ -23,13 +23,14 @@ function applyHomeLanguage(lang) {
     if (!t) return;
 
     // Dịch Navbar
-    const navLinks = document.querySelectorAll('.nav-links a');
+    const navLinks = document.querySelectorAll('.nav-links > a');
     navLinks.forEach(link => {
         if(link.href.includes('index.html')) link.innerText = t.navHome;
         if(link.href.includes('about.html')) link.innerText = t.navAbout;
         if(link.href.includes('tips.html')) link.innerText = t.navTips;
         if(link.href.includes('FAQ.html')) link.innerText = t.navFAQ;
         if(link.href.includes('typing.html')) link.innerText = t.navTyping;
+        if(link.href.includes('contact.html')) link.innerText = t.navContact;
     });
 
     // Dịch Hero Section

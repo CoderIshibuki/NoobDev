@@ -1,0 +1,316 @@
+/* /home/ishibuki/Documents/NoobDev/assets/css/contact.css */
+
+/* Wrapper chính */
+.contact-wrapper {
+    padding-top: 120px; /* Tăng khoảng cách tránh bị Navbar che */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+}
+
+/* Footer (Sticky bottom) */
+footer {
+    margin-top: auto; /* Đẩy footer xuống đáy */
+    padding: 30px 0;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+/* Header */
+.contact-header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeInDown 0.8s ease;
+}
+
+.contact-header h1 {
+    font-size: 3rem;
+    background: linear-gradient(to right, #fff, #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+}
+
+.contact-header p {
+    color: #cbd5e1;
+    font-size: 1.1rem;
+}
+
+/* Container chính (Chia 2 cột) */
+.contact-container {
+    display: flex;
+    width: 90%;
+    max-width: 1100px;
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    animation: fadeInUp 0.8s ease;
+    margin-bottom: 20px; /* Khoảng cách với footer */
+}
+
+/* Cột trái: Thông tin */
+.contact-info {
+    flex: 1;
+    background: rgba(15, 23, 42, 0.8);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Trang trí nền cột trái */
+.contact-info::before {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 150px; height: 150px;
+    background: #38bdf8;
+    filter: blur(80px);
+    opacity: 0.2;
+    border-radius: 50%;
+}
+
+.contact-info h3 {
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.info-desc {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.icon-box {
+    width: 45px; height: 45px;
+    background: rgba(56, 189, 248, 0.1);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #38bdf8;
+    font-size: 1.2rem;
+    transition: 0.3s;
+}
+
+.info-item:hover .icon-box {
+    background: #38bdf8;
+    color: #0f172a;
+    transform: scale(1.1);
+}
+
+.info-text {
+    display: flex; flex-direction: column;
+}
+
+.info-text .label {
+    font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;
+}
+
+.info-text .value {
+    font-size: 1rem; color: #e2e8f0; font-weight: 500; text-decoration: none;
+}
+
+.social-links {
+    margin-top: auto;
+    display: flex; gap: 15px;
+}
+
+.social-links a {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+    color: white; text-decoration: none;
+    transition: 0.3s;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.social-links a:hover {
+    background: #38bdf8; color: #0f172a; transform: translateY(-3px);
+}
+
+/* Cột phải: Form */
+.contact-form-box {
+    flex: 1.5;
+    padding: 40px;
+    background: rgba(15, 23, 42, 0.4); /* Nền mờ nhẹ */
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper input, .input-wrapper textarea {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 15px 12px 45px; /* Padding trái chừa chỗ cho icon */
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    transition: 0.3s;
+    font-family: inherit;
+}
+
+.input-wrapper textarea {
+    height: 120px;
+    resize: none;
+    padding-top: 15px;
+}
+
+.input-wrapper i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    transition: 0.3s;
+}
+
+.textarea-wrapper i {
+    top: 20px;
+    transform: none;
+}
+
+.input-wrapper input:focus, .input-wrapper textarea:focus {
+    border-color: #38bdf8;
+    background: rgba(0, 0, 0, 0.3);
+    outline: none;
+}
+
+.input-wrapper input:focus + i, .input-wrapper textarea:focus + i {
+    color: #38bdf8;
+}
+
+.send-btn {
+    width: 100%;
+    display: flex; justify-content: center; align-items: center; gap: 10px;
+    margin-top: 25px;
+    padding: 16px;
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(56, 189, 248, 0.3);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Hiệu ứng Hover */
+.send-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(56, 189, 248, 0.5);
+    background: linear-gradient(135deg, #0ea5e9, #1d4ed8);
+}
+
+/* Hiệu ứng icon bay lên khi hover */
+.send-btn:hover i { transform: translateX(3px) translateY(-3px); }
+.send-btn i { transition: transform 0.3s ease; }
+
+/* Trạng thái Disabled (khi đang gửi) */
+.send-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    background: #64748b;
+}
+
+/* Đường kẻ ngăn cách trên Desktop */
+@media (min-width: 769px) {
+    .contact-form-box {
+        border-left: 1px solid rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .contact-container {
+        flex-direction: column;
+    }
+    .contact-info {
+        padding: 30px;
+    }
+    .contact-form-box {
+        padding: 30px;
+    }
+}
+
+/* --- TOAST NOTIFICATION --- */
+#toast-container {
+    position: fixed;
+    top: 100px; /* Tránh Navbar */
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.toast {
+    min-width: 300px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    color: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.toast.success { border-left: 4px solid #4ade80; }
+.toast.success i { color: #4ade80; font-size: 1.2rem; }
+
+.toast.error { border-left: 4px solid #f87171; }
+.toast.error i { color: #f87171; font-size: 1.2rem; }
+
+.toast.hiding { animation: fadeOutRight 0.4s ease forwards; }
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeOutRight {
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

@@ -23,8 +23,8 @@
 .tips-header h1 {
     font-size: 3.5rem;
     font-weight: 800;
-    /* Gradient Xanh Dương sáng giống About */
-    background: linear-gradient(to right, #fff, #38bdf8); 
+    /* Gradient Xanh Dương sáng giống About */ /* Viền sáng xanh khi hover */
+    background: linear-gradient(to right, #fff, #38bdf8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 15px;
@@ -112,7 +112,7 @@
 
 .faq-card:hover {
     transform: translateY(-5px);
-    border-color: #38bdf8; /* Viền sáng xanh khi hover */
+    border-color: #38bdf8;
     box-shadow: 0 15px 40px rgba(0,0,0,0.4);
     background: rgba(30, 41, 59, 0.9);
 }
@@ -149,11 +149,22 @@ footer {
 
 /* RESPONSIVE */
 @media (max-width: 900px) {
-    .tips-content-wrapper { flex-direction: column; }
-    .tips-sidebar { width: 100%; position: relative; top: 0; margin-bottom: 30px; }
-    .faq-toc { padding: 20px; }
-    .tips-header h1 { font-size: 2.5rem; }
+    .tips-content-wrapper {
+        flex-direction: column;
+    }
+    .tips-sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+        margin-bottom: 30px;
+    }
+    .faq-toc {
+        padding: 20px;
+    }
+    .tips-header h1 {
+        font-size: 2.5rem;
+    }
 }
 
-@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } } @keyframes flash { 0%, 100% { background: rgba(30, 41, 59, 0.7); } 50% { background: rgba(56, 189, 248, 0.15); } }
 @keyframes flash { 0%, 100% { background: rgba(30, 41, 59, 0.7); } 50% { background: rgba(56, 189, 248, 0.15); } }

@@ -3,6 +3,7 @@ export const translations = {
         // Navbar
         navHome: "Home", navAbout: "About", navTips: "Tips", navFAQ: "FAQ", navTyping: "Typing",
         navLogin: "Login", navProfile: "Profile", navSettings: "Settings", navLogout: "Logout",
+        navContact: "Contact",
         
         // Typing Page UI
         tabBeginner: "Beginner", tabCode: "Code", tabTest: "Speed Test", tabMinigame: "Minigame", tabCustom: "Custom",
@@ -23,6 +24,7 @@ export const translations = {
         
         // Settings
         settingsTitle: "Settings", lblDisplayName: "Display Name", lblPhotoUrl: "Avatar URL", lblVolume: "Game Volume", lblEffects: "Background Effects", btnSave: "Save Changes",
+        lbTitle: "Your Typing History",
         
         // Login/Signup
         loginTitle: "Login", signupTitle: "Sign Up", emailPlaceholder: "Email Address", passPlaceholder: "Password", namePlaceholder: "Full Name",
@@ -87,12 +89,18 @@ export const translations = {
         q11Title: "How to practice?", q11Desc: "Place your fingers on the Home Row (ASDF JKL;) and practice pressing keys without looking.",
         q12Title: "What is muscle memory?", q12Desc: "Muscle memory is the ability to reproduce a movement automatically through repetition without conscious thought.",
         q13Title: "How to type faster?", q13Desc: "1. Don't look at the keyboard. 2. Focus on accuracy first. 3. Maintain good posture. 4. Practice regularly.",
-        q14Title: "What is the average typing speed?", q14Desc: "The average typing speed is around 40-50 WPM. Professional typists often reach 70-80 WPM, while advanced competitive typists can exceed 150 WPM."
-    },
+        q14Title: "What is the average typing speed?", q14Desc: "The average typing speed is around 40-50 WPM. Professional typists often reach 70-80 WPM, while advanced competitive typists can exceed 150 WPM.",
+
+        // Contact Page
+        contactTitle: "Get in Touch", contactSubtitle: "Have questions or feedback? We'd love to hear from you.",
+        contactInfoTitle: "Contact Information", contactInfoDesc: "Fill up the form and our Team will get back to you within 24 hours.",
+        lblYourName: "Your Name", lblEmail: "Email Address", lblSubject: "Subject", lblMessage: "Message", btnSend: "Send Message"
+    }, 
     vi: {
         // Navbar
         navHome: "Trang chủ", navAbout: "Giới thiệu", navTips: "Mẹo", navFAQ: "Hỏi đáp", navTyping: "Luyện gõ",
         navLogin: "Đăng nhập", navProfile: "Hồ sơ", navSettings: "Cài đặt", navLogout: "Đăng xuất",
+        navContact: "Liên hệ",
         
         // Typing Page UI
         tabBeginner: "Cơ bản", tabCode: "Code", tabTest: "Kiểm tra", tabMinigame: "Minigame", tabCustom: "Tùy chỉnh",
@@ -113,6 +121,7 @@ export const translations = {
         
         // Settings
         settingsTitle: "Cài đặt", lblDisplayName: "Tên hiển thị", lblPhotoUrl: "Đường dẫn Avatar", lblVolume: "Âm lượng game", lblEffects: "Hiệu ứng nền", btnSave: "Lưu thay đổi",
+        lbTitle: "Lịch sử đấu",
         
         // Login/Signup
         loginTitle: "Đăng nhập", signupTitle: "Đăng ký", emailPlaceholder: "Địa chỉ Email", passPlaceholder: "Mật khẩu", namePlaceholder: "Họ và tên",
@@ -177,6 +186,11 @@ export const translations = {
         q11Title: "Làm thế nào để luyện tập?", q11Desc: "Đặt tay lên hàng phím cơ sở (ASDF JKL;) và tập gõ không nhìn xuống.",
         q12Title: "Trí nhớ cơ bắp là gì?", q12Desc: "Khả năng thực hiện động tác một cách tự động thông qua việc lặp đi lặp lại nhiều lần.",
         q13Title: "Làm thế nào để gõ nhanh hơn?", q13Desc: "1. Đừng nhìn bàn phím. 2. Ưu tiên chính xác hơn tốc độ. 3. Ngồi đúng tư thế.",
-        q14Title: "Tốc độ gõ trung bình là bao nhiêu?", q14Desc: "Tốc độ trung bình khoảng 40-50 WPM. Người chuyên nghiệp có thể đạt 70-80 WPM."
+        q14Title: "Tốc độ gõ trung bình là bao nhiêu?", q14Desc: "Tốc độ trung bình khoảng 40-50 WPM. Người chuyên nghiệp có thể đạt 70-80 WPM.",
+
+        // Contact Page
+        contactTitle: "Liên hệ với chúng tôi", contactSubtitle: "Bạn có câu hỏi hoặc góp ý? Chúng tôi rất muốn lắng nghe.",
+        contactInfoTitle: "Thông tin liên hệ", contactInfoDesc: "Điền vào biểu mẫu và Đội ngũ của chúng tôi sẽ phản hồi trong vòng 24 giờ.",
+        lblYourName: "Tên của bạn", lblEmail: "Địa chỉ Email", lblSubject: "Chủ đề", lblMessage: "Nội dung tin nhắn", btnSend: "Gửi tin nhắn"
     }
 };

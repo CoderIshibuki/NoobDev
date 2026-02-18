@@ -9,7 +9,8 @@ import {
     FacebookAuthProvider,
     GithubAuthProvider,
     signInWithPopup,
-    sendPasswordResetEmail // <--- MỚI: Import hàm này
+    sendPasswordResetEmail,
+    sendEmailVerification // <--- MỚI: Import hàm xác thực email
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -19,6 +20,10 @@ export async function registerUser(name, email, password) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         await updateProfile(user, { displayName: name });
+        
+        // Gửi email xác thực ngay sau khi đăng ký
+        await sendEmailVerification(user);
+        
         await saveUserToFirestore(user, name);
         return { success: true, user };
     } catch (error) {

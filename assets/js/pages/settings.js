@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!container) return;
 
         container.innerHTML = ''; 
-        const starCount = 500; // Số lượng sao dày đặc
+        const starCount = 200; // Số lượng sao dày đặc
 
         for(let i=0; i < starCount; i++) {
             const star = document.createElement('div');

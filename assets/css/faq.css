@@ -20,8 +20,8 @@
 .faq-header h1 {
     font-size: 3.5rem;
     font-weight: 800;
-    /* Gradient Vàng Cam nổi bật */
-    background: linear-gradient(to right, #e2e8f0, #38bdf8 ); 
+    /* Gradient Vàng Cam nổi bật */ /* Viền vàng khi hover */
+    background: linear-gradient(to right, #e2e8f0, #38bdf8 );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 15px;
@@ -77,14 +77,15 @@
     text-decoration: none;
     color: #94a3b8;
     font-size: 0.95rem;
-    transition: all 0.3s ease;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
     display: block;
     padding: 8px 12px;
     border-radius: 8px;
 }
 
 .faq-toc a:hover, .faq-toc a.active-link {
-    background: rgba(56, 189, 248, 0.3); /* Nền vàng nhạt khi hover */
+    /* Nền vàng nhạt khi hover */
+    background: rgba(56, 189, 248, 0.3);
     color: #38bdf8;
     transform: translateX(5px);
 }
@@ -99,17 +100,17 @@
 
 .faq-card {
     /* Style Kính mờ trong suốt */
-    background: rgba(30, 41, 59, 0.4); 
+    background: rgba(30, 41, 59, 0.4);
     backdrop-filter: blur(5px);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 20px;
     padding: 40px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
 .faq-card:hover {
-    transform: translateY(-5px);
-    border-color: #38bdf8; /* Viền vàng khi hover */
+    transform: translateY(-5px); /* Viền vàng khi hover */
+    border-color: #38bdf8;
     box-shadow: 0 15px 40px rgba(0,0,0,0.4);
     background: rgba(30, 41, 59, 0.6);
 }
@@ -146,10 +147,20 @@ footer {
 
 /* RESPONSIVE */
 @media (max-width: 900px) {
-    .faq-content-wrapper { flex-direction: column; }
-    .faq-sidebar { width: 100%; position: relative; top: 0; margin-bottom: 30px; }
+    .faq-content-wrapper {
+        flex-direction: column;
+    }
+    .faq-sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+        margin-bottom: 30px;
+    }
     .faq-header h1 { font-size: 2.5rem; }
 }
 
-@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 @keyframes flash { 0%, 100% { background: rgba(30, 41, 59, 0.4); } 50% { background: rgba(56, 189, 248, 0.3); } }

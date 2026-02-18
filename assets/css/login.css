@@ -1,7 +1,11 @@
 /* assets/css/login.css */
 
 /* 1. SETUP CHUNG */
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
 body {
     background: linear-gradient(135deg, #0a2647 0%, #1a4d7a 50%, #2c7da0 100%);
@@ -13,13 +17,46 @@ body {
 }
 
 /* --- BACKGROUND (Sao, Trăng, Mây) --- */
-.stars { position: fixed; width: 100%; height: 100%; z-index: 0; pointer-events: none;}
-.star { position: absolute; background: white; border-radius: 50%; animation: twinkle 4s infinite; }
-.moon { position: absolute; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff, #d4e8f5); box-shadow: 0 0 50px rgba(255,255,255,0.4); top: 50px; right: 10%; z-index: 0; }
-.clouds { position: absolute; bottom: 0; width: 100%; height: 200px; z-index: 1; filter: blur(3px); pointer-events: none;}
-.cloud { position: absolute; background: white; border-radius: 100px; opacity: 0.6; }
-.cloud1 { width:180px; height:70px; bottom:20px; left:5%; animation: drift 25s infinite linear; }
-.cloud2 { width:220px; height:90px; bottom:50px; left:40%; animation: drift 30s infinite linear; }
+.stars {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 4s infinite;
+}
+.moon {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff, #d4e8f5);
+    box-shadow: 0 0 50px rgba(255,255,255,0.4);
+    top: 50px;
+    right: 10%;
+    z-index: 0;
+}
+.clouds {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 200px;
+    z-index: 1;
+    filter: blur(3px);
+    pointer-events: none;
+}
+.cloud {
+    position: absolute;
+    background: white;
+    border-radius: 100px;
+    opacity: 0.6;
+}
+.cloud1 { width:180px; height:70px; bottom:20px; left:5%; animation: drift 25s infinite linear; } .cloud2 { width:220px; height:90px; bottom:50px; left:40%; animation: drift 30s infinite linear; }
 
 @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 @keyframes drift { from { transform: translateX(-150px); } to { transform: translateX(110vw); } }
@@ -27,7 +64,7 @@ body {
 /* --- 2. NÚT BACK TO HOME (TO HƠN) --- */
 .back-home {
     position: absolute; 
-    top: 40px; left: 40px; z-index: 20; /* Cách lề xa hơn chút */
+    top: 40px; left: 40px; z-index: 20; /* Cách lề xa hơn chút */ /* Style nút kính mờ */
     
     /* Style nút kính mờ */
     background: rgba(255, 255, 255, 0.1);
@@ -35,20 +72,20 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2);
     
     /* Kích thước to hơn */
-    padding: 12px 25px; 
+    padding: 12px 25px;
     border-radius: 30px;
     
-    color: white; 
-    text-decoration: none; 
+    color: white;
+    text-decoration: none;
     font-size: 16px; /* Chữ to hơn */
     font-weight: 600;
     
-    display: flex; align-items: center; gap: 10px; 
+    display: flex; align-items: center; gap: 10px;
     transition: all 0.3s ease;
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-.back-home i { font-size: 18px; } /* Icon to hơn */
+.back-home i { font-size: 18px; }
 
 .back-home:hover { 
     background: rgba(255, 255, 255, 0.2);
@@ -59,7 +96,7 @@ body {
 
 /* --- 3. AUTH CARD (TO HƠN) --- */
 .auth-wrapper {
-    position: relative; z-index: 10;
+    position: relative; z-index: 10; /* Tăng chiều rộng từ 420px -> 500px */
     width: 100%; 
     max-width: 500px; /* Tăng chiều rộng từ 420px -> 500px */
     padding: 20px;
@@ -72,7 +109,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 25px; /* Bo góc tròn hơn */
     
-    /* Tăng padding bên trong để card thoáng hơn */
+    /* Tăng padding bên trong để card thoáng hơn */ /* Tăng size chữ tiêu đề */
     padding: 50px 45px; 
     
     box-shadow: 0 25px 60px rgba(0,0,0,0.6);
@@ -92,11 +129,11 @@ body {
 .auth-header p { color: #cbd5e1; font-size: 16px; font-weight: 500; }
 
 /* TABS */
-.auth-tabs {
+.auth-tabs { /* Tab cao hơn */
     display: flex; margin-bottom: 35px;
     border-bottom: 2px solid rgba(255,255,255,0.15);
 }
-.tab-btn {
+.tab-btn { /* Chữ tab to hơn */
     flex: 1; padding: 15px; /* Tab cao hơn */
     background: none; border: none;
     color: #94a3b8; font-weight: 700; 
@@ -107,7 +144,7 @@ body {
 }
 .tab-btn:hover { color: white; }
 .tab-btn.active { color: #38bdf8; }
-.tab-btn.active::after {
+.tab-btn.active::after { /* Gạch chân dày hơn */
     content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px; /* Gạch chân dày hơn */
     background: #38bdf8; box-shadow: 0 -2px 15px rgba(56, 189, 248, 0.6);
 }
@@ -117,14 +154,14 @@ body {
 .auth-form.active { display: block; }
 
 /* Input Styles */
-.input-group { position: relative; margin-bottom: 25px; } /* Cách dòng xa hơn */
+.input-group { position: relative; margin-bottom: 25px; } /* Cách dòng xa hơn */ /* Icon input to hơn */
 
 .input-group i {
     position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
     color: #94a3b8; font-size: 18px; /* Icon input to hơn */
 }
 
-.input-group input {
+.input-group input { /* Input cao hơn, padding trái lớn hơn */ /* Chữ khi gõ to hơn */
     width: 100%; 
     padding: 15px 15px 15px 50px; /* Input cao hơn, padding trái lớn hơn */
     background: rgba(0, 0, 0, 0.3);
@@ -142,7 +179,7 @@ body {
 }
 
 /* Button Submit */
-.btn-submit {
+.btn-submit { /* Nút to hơn */
     width: 100%; 
     padding: 15px; /* Nút to hơn */
     background: linear-gradient(135deg, #38bdf8, #2563eb);
@@ -160,7 +197,7 @@ body {
 }
 
 /* Options */
-.form-options {
+.form-options { /* Chữ to hơn */
     display: flex; justify-content: space-between; align-items: center;
     font-size: 14px; /* Chữ to hơn */
     color: #cbd5e1; margin-bottom: 25px;
@@ -172,7 +209,7 @@ body {
 .social-login { text-align: center; margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 25px; }
 .social-login span { display: block; font-size: 14px; color: #94a3b8; margin-bottom: 20px; }
 .social-icons { display: flex; justify-content: center; gap: 20px; }
-.icon {
+.icon { /* Icon social to hơn */
     width: 50px; height: 50px; /* Icon social to hơn */
     border-radius: 50%;
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
@@ -185,8 +222,17 @@ body {
 
 /* Mobile Responsive */
 @media (max-width: 600px) {
-    .auth-wrapper { max-width: 95%; padding: 15px; } /* Mobile thì full màn */
-    .auth-card { padding: 30px 20px; }
-    .auth-header h2 { font-size: 28px; }
-    .back-home { top: 20px; left: 20px; font-size: 14px; padding: 10px 20px; }
+    .auth-wrapper {
+        max-width: 95%;
+        padding: 15px;
+    } /* Mobile thì full màn */
+    .auth-card {
+        padding: 30px 20px;
+    }
+    .auth-header h2 {
+        font-size: 28px;
+    }
+    .back-home {
+        top: 20px; left: 20px; font-size: 14px; padding: 10px 20px;
+    }
 }
