@@ -1,0 +1,59 @@
+/* Section transition animations */
+.section-transition {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.section-fade-out {
+  opacity: 0 !important;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
+.section-fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.game-section.fade-enter {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+.game-section.fade-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#resultOverlay.fade-enter {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+#resultOverlay.fade-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.3s ease;
+}
+
+.lobby-container.fade-leave {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Z-index safety */
+#toast-container {
+  z-index: 10001 !important;
+}
+
+.result-overlay {
+  z-index: 1000;
+}
+
+.focus-overlay {
+  z-index: 20;
+}
+
+.game-shell {
+  z-index: 15;
+}

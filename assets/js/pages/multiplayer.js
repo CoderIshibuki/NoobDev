@@ -1,7 +1,6 @@
-import { auth, db, rtdb } from "../firebase/config.js"; // Import auth, db, rtdb
+import { auth, db, rtdb } from "../firebase/config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  getDatabase,
   ref,
   set,
   onValue,
@@ -34,33 +33,60 @@ import { requireAuth } from "../auth-guard.js";
 import { getRandomText } from "../data/typing-data.js";
 import { saveGameScore } from "../firebase/db.js";
 
-// Bảo vệ trang
 requireAuth();
+
+const DEFAULT_MAX_PLAYERS = 5;
+const COUNTDOWN_SECONDS = 3;
+const DEFAULT_DURATION = 60;
 
 const state = {
   mpRoomId: null,
   mpPlayerId: null,
   mpPlayersData: {},
   mpChartData: {},
-  hostId: null, // Lưu ID chủ phòng
-  isUserReady: false, // Trạng thái sẵn sàng của bản thân
+  roomMaxPlayers: DEFAULT_MAX_PLAYERS,
+  myElo: 1000,
+  hostId: null,
+  isUserReady: false,
+  roomMode: "normal",
+  roomStatus: "waiting",
+  currentRoomText: "",
+  matchDuration: DEFAULT_DURATION,
+  inviteRoomId: null,
+  roomUnsubscribers: [],
+  roomCountdownTarget: null,
+  countdownTimer: null,
+  countdownTransitionTimeout: null,
+  roomFinishTimeout: null,
+  chartColorMap: {},
+  chartColorCursor: 0,
 
-  // Game State
   isTyping: false,
+  isGameActive: false,
+  isPlayerFinished: false,
+  resultsShown: false,
+  scoreSaved: false,
   text: "",
   charIndex: 0,
   mistakes: 0,
   timeLeft: 0,
-  maxTime: 0,
+  maxTime: DEFAULT_DURATION,
   timer: null,
   charSpans: [],
+  latestStats: {
+    wpm: 0,
+    accuracy: 100,
+    progress: 0,
+  },
+
   lang: localStorage.getItem("language") || "en",
   soundEnabled: localStorage.getItem("typingSound") === "true",
   zenMode: false,
   smoothCaret: localStorage.getItem("smoothCaret") === "true",
   heatmap: {},
   heatmapEnabled: false,
-  typingTimeout: null, // Dùng cho chat typing indicator
+  typingTimeout: null,
+  friendsList: [],
 };
 
 const els = {
@@ -77,6 +103,16 @@ const els = {
   resultOverlay: document.getElementById("resultOverlay"),
   finalWpm: document.getElementById("finalWpm"),
   finalAcc: document.getElementById("finalAcc"),
+  finalTime: document.getElementById("finalTime"),
+  finalLeaderboard: document.getElementById("finalLeaderboard"),
+  matchMeta: document.getElementById("matchMeta"),
+  readySummary: document.getElementById("readySummary"),
+  raceTrack: document.getElementById("raceTrack"),
+  miniRoomEvents: document.getElementById("miniRoomEvents"),
+  countdownOverlay: document.getElementById("countdownOverlay"),
+  countdownNumber: document.getElementById("countdownNumber"),
+  gameStatusBadge: document.getElementById("gameStatusBadge"),
+  btnCopyRoomCodeResult: document.getElementById("btnCopyRoomCodeResult"),
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -85,42 +121,108 @@ document.addEventListener("DOMContentLoaded", () => {
   renderLobby();
   applyGlobalLanguage(state.lang);
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      loadUserProfile();
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+    state.mpPlayerId = user.uid;
+    await loadUserProfile();
+
+    if (state.inviteRoomId && !state.mpRoomId) {
+      joinRoom(state.inviteRoomId);
     }
   });
 
-  // Event Listeners cho Game
   if (els.input) els.input.addEventListener("input", handleTyping);
-  if (els.wrapper)
-    els.wrapper.addEventListener("click", () => els.input.focus());
-  if (els.overlay)
+
+  if (els.wrapper) {
+    els.wrapper.addEventListener("click", () => {
+      if (!state.isGameActive || state.isPlayerFinished) return;
+      els.input.focus();
+    });
+  }
+
+  if (els.overlay) {
     els.overlay.addEventListener("click", () => {
+      if (!state.isGameActive || state.isPlayerFinished) return;
       els.input.focus();
       els.overlay.classList.add("hidden");
     });
-  if (els.input)
+  }
+
+  if (els.input) {
     els.input.addEventListener("blur", () => {
-      if (els.game.style.display !== "none")
+      if (
+        els.game.style.display !== "none" &&
+        state.isGameActive &&
+        !state.isPlayerFinished
+      ) {
         els.overlay.classList.remove("hidden");
+      }
     });
+  }
 
-  // Setup Controls
+  if (els.btnCopyRoomCodeResult) {
+    els.btnCopyRoomCodeResult.onclick = copyInviteLink;
+  }
+
   setupControls();
-
-  // Kiểm tra URL xem có phải link mời không
   checkInviteLink();
 });
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function formatTime(totalSeconds) {
+  const safe = Math.max(0, Math.floor(totalSeconds || 0));
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+}
+
+function getDurationLabel(duration) {
+  if (duration >= 60 && duration % 60 === 0) {
+    const minutes = duration / 60;
+    return `${minutes} min`;
+  }
+  return `${duration}s`;
+}
+
+function getModeLabel(mode) {
+  const t = translations[state.lang] || translations.en;
+  return mode === "ranked"
+    ? t.modeRanked || "Ranked"
+    : t.modeNormal || "Normal";
+}
+
+function getSelectedDuration() {
+  const select = document.getElementById("matchDurationSelect");
+  const value = parseInt(select?.value || DEFAULT_DURATION, 10);
+  return Number.isFinite(value) ? value : DEFAULT_DURATION;
+}
+
+function isMobileDevice() {
+  try {
+    return (
+      /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+        navigator.userAgent,
+      ) ||
+      (window.matchMedia && window.matchMedia("(pointer: coarse)").matches)
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 function setupControls() {
   const btnSound = document.getElementById("btnSound");
-  if (btnSound) {
-    btnSound.onclick = toggleSound;
-  }
+  if (btnSound) btnSound.onclick = toggleSound;
 
-  // Thêm nút Zen và Heatmap vào nav-controls nếu chưa có
-  if (els.navControls) {
+  if (els.navControls && !document.getElementById("btnZen")) {
     const zenBtn = document.createElement("button");
     zenBtn.id = "btnZen";
     zenBtn.className = "nav-control-btn";
@@ -130,900 +232,957 @@ function setupControls() {
     const heatBtn = document.createElement("button");
     heatBtn.id = "btnHeatmap";
     heatBtn.className = "nav-control-btn";
+    heatBtn.innerHTML = '<i class="fas fa-fire-alt"></i> Heatmap Off';
     heatBtn.onclick = toggleHeatmap;
 
     els.navControls.insertBefore(heatBtn, els.navControls.firstChild);
     els.navControls.insertBefore(zenBtn, els.navControls.firstChild);
   }
+
   updateControlButtons();
 }
 
 function checkInviteLink() {
   const urlParams = new URLSearchParams(window.location.search);
   const roomId = urlParams.get("room");
-  if (roomId) {
-    // Tự động vào phòng nếu có ID trên URL
-    // Cần đợi Auth load xong, nên logic này sẽ được gọi lại trong onAuthStateChanged hoặc xử lý ở joinRoom
-    // Tuy nhiên, để đơn giản, ta gán vào input và đợi người dùng bấm hoặc tự kích hoạt sau
-    const roomInput = document.getElementById("roomInput");
-    if (roomInput) roomInput.value = roomId;
 
-    // Nếu đã đăng nhập, tự động join (cần check auth state)
-    onAuthStateChanged(auth, (user) => {
-      if (user && roomId) joinRoom(roomId);
-    });
+  if (!roomId) return;
+
+  state.inviteRoomId = roomId;
+  const roomInput = document.getElementById("roomInput");
+  if (roomInput) roomInput.value = roomId;
+
+  if (auth.currentUser && !state.mpRoomId) {
+    joinRoom(roomId);
   }
 }
 
-// --- LOBBY LOGIC ---
-
 function renderLobby() {
-  const t = translations[state.lang] || translations["en"];
+  const t = translations[state.lang] || translations.en;
+
   els.lobby.innerHTML = `
-        <div class="lobby-grid">
-            <section class="lobby-panel">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h2 class="section-title"><i class="fas fa-users"></i> ${t.tabMultiplayer}</h2>
-                        <p class="section-subtitle">${t.msgMultiplayerIntro || "Play with friends, join quick matches, or create your own room."}</p>
-                    </div>
-
-                    <div class="lobby-actions">
-                        <button class="cta-button btn-quick" id="btnQuickMatch">${t.btnQuickMatch}</button>
-                        <button class="cta-button btn-ranked" id="btnRanked"><i class="fas fa-trophy"></i> ${t.btnRanked}</button>
-                    </div>
-
-                    <div class="room-divider"><span>${t.lblOr || "OR"}</span></div>
-
-                    <div class="room-actions">
-                        <button class="btn-secondary" id="btnCreateRoom">${t.btnCreateRoom}</button>
-                        <input type="text" id="roomInput" class="room-input" placeholder="${t.placeholderRoomID}">
-                        <button class="btn-secondary" id="btnJoinRoom">${t.btnJoinRoom}</button>
-                    </div>
-                </div>
-            </section>
-
-            <aside class="friends-column">
-                <div class="section-card friend-sidebar-card">
-                    <div class="section-header" style="align-items: flex-start; gap: 10px;">
-                        <div>
-                            <h2 class="section-title"><i class="fas fa-user-friends"></i> ${t.lblFriends || "Friends"}</h2>
-                            <p class="section-subtitle">${t.msgFriendsIntro || "Add friends and chat outside the room."}</p>
-                        </div>
-                        <span id="myShortId" class="friend-id-badge">ID: ...</span>
-                    </div>
-
-                    <div class="add-friend-box">
-                        <input type="text" id="friendIdInput" placeholder="${t.placeholderFriendID || "Enter ID"}" class="friend-input">
-                        <button id="btnAddFriend" class="btn-icon small" title="${t.btnAddFriend || "Add Friend"}"><i class="fas fa-plus"></i></button>
-                    </div>
-
-                    <div class="friends-list" id="friendsList">
-                        <!-- Friends will be populated here -->
-                    </div>
-
-                    <div class="friend-chat-panel" id="friendChatPanel">
-                        <div class="friend-chat-header">
-                            <div>
-                                <div id="friendChatTitle" class="friend-chat-title">${t.lblFriendChat || "Friend Chat"}</div>
-                                <div class="friend-chat-subtitle" id="friendChatSubtitle">${t.msgSelectFriend || "Select a friend to chat."}</div>
-                            </div>
-                            <button id="btnCloseFriendChat" class="btn-icon small" title="${t.btnClose || "Close"}"><i class="fas fa-times"></i></button>
-                        </div>
-                        <div class="friend-chat-messages" id="friendChatMessages"></div>
-                        <div class="friend-chat-input">
-                            <input type="text" id="friendChatInput" placeholder="${t.placeholderFriendChat || "Message your friend..."}" class="friend-input">
-                            <button id="btnSendFriendChat" class="btn-send">${t.btnSend || "Send"}</button>
-                        </div>
-                    </div>
-                </div>
-            </aside>
+    <div class="dashboard-layout">
+      <div class="dashboard-main">
+        <div class="play-options">
+          <div class="play-card" id="btnQuickMatch">
+            <i class="fas fa-bolt"></i>
+            <h3>${t.btnQuickMatch || "Quick Match"}</h3>
+            <p>Join a random public room</p>
+          </div>
+          <div class="play-card ranked" id="btnRanked">
+            <i class="fas fa-trophy"></i>
+            <h3>${t.btnRanked || "Ranked"}</h3>
+            <p>Compete for rating</p>
+          </div>
         </div>
 
-        <div id="mpRoomInfo" class="room-info-panel">
-            <div class="lobby-left room-details">
-                <div class="room-header">
-                    <div>
-                        <h3>${t.lblRoomID}: <span id="roomIdDisplay" class="room-id-display"></span></h3>
-                        <div id="roomModeBadge" class="room-mode-badge"></div>
-                    </div>
-                    <button class="btn-invite" id="btnInvite" title="${t.btnInvite}"><i class="fas fa-link"></i> ${t.btnInvite}</button>
-                </div>
-
-                <h4 class="section-label">${t.lblPlayers || "Players"}</h4>
-                <div class="player-list" id="playerList"></div>
-
-                <div class="lobby-controls room-actions-row">
-                    <button class="cta-button" id="btnReady">${t.btnReady || "Ready"}</button>
-                    <button class="cta-button" id="btnStartMatch" style="display:none;">${t.btnStartMatch}</button>
-                </div>
-                <p id="waitingMsg" class="waiting-msg">${t.lblWaiting}</p>
+        <div class="custom-room-section">
+          <div class="room-actions-bar">
+            <div class="room-settings">
+              <select id="matchDurationSelect" class="sleek-input" style="width: auto; display: inline-block;">
+                <option value="30">30s</option>
+                <option value="60" selected>60s</option>
+                <option value="120">120s</option>
+              </select>
+              <select id="maxPlayersSelect" class="sleek-input" style="width: auto; display: inline-block; margin-left: 8px;">
+                <option value="2">2 Players (1v1)</option>
+                <option value="3">3 Players</option>
+                <option value="4">4 Players</option>
+                <option value="5" selected>5 Players</option>
+              </select>
             </div>
+            <button class="sleek-btn" id="btnCreateRoom">Create Room</button>
+            <div class="join-box">
+              <input type="text" id="roomInput" class="sleek-input" placeholder="Room ID">
+              <button class="sleek-btn outline" id="btnJoinRoom">Join</button>
+            </div>
+          </div>
+        </div>
 
-            <div class="lobby-right room-chat">
-                <h3>${t.lblChat}</h3>
-                <div class="chat-box">
-                    <div class="chat-messages" id="chatMessages"></div>
-                    <div class="chat-input-area">
-                        <input type="text" id="chatInput" class="chat-input" placeholder="${t.placeholderChat}">
-                        <button id="btnSendChat" class="btn-send">${t.btnSend}</button>
-                    </div>
-                    <div id="typingIndicator" class="typing-indicator"></div>
-                </div>
+        <div id="mpRoomInfo" class="room-info-container" style="display:none;">
+          <div class="room-header-sleek">
+            <div class="room-title">
+              <h2>Room <span id="roomIdDisplay" class="highlight"></span></h2>
+              <div id="roomModeBadge" class="badge"></div>
+            </div>
+            <div class="room-header-actions">
+              <span id="lobbyStatusValue" class="status-text">Waiting</span>
+              <button class="sleek-btn outline small" id="btnInvite"><i class="fas fa-link"></i> Invite</button>
+            </div>
+          </div>
+          
+          <div class="room-players-grid" id="playerList"></div>
+          
+          <div class="room-footer-sleek">
+            <div class="room-summary">
+              <span id="roomReadyCount">0/${state.roomMaxPlayers}</span> Ready
+            </div>
+            <div class="room-controls">
+              <p id="waitingMsg" class="waiting-msg">${t.lblWaiting || "Waiting..."}</p>
+              <button class="sleek-btn primary" id="btnReady">${t.btnReady || "Ready"}</button>
+              <button class="sleek-btn success" id="btnStartMatch" style="display:none;">${t.btnStartMatch || "Start Match"}</button>
+            </div>
+          </div>
+
+          <div class="sleek-chat">
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-wrapper">
+              <input type="text" id="chatInput" placeholder="${t.placeholderChat || "Message..."}" class="sleek-input" />
+              <button id="btnSendChat" class="icon-btn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <div id="typingIndicator" class="typing-indicator"></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="dashboard-sidebar">
+        <div class="friends-widget">
+          <div class="sidebar-header">
+            <h3><i class="fas fa-user-friends"></i> Friends</h3>
+            <span id="myShortId" class="short-id">ID: ...</span>
+          </div>
+          <div class="add-friend-bar">
+            <input type="text" id="friendIdInput" placeholder="Friend ID" class="sleek-input small">
+            <button id="btnAddFriend" class="icon-btn"><i class="fas fa-plus"></i></button>
+          </div>
+          <div class="friends-list" id="friendsList"></div>
+        </div>
+        
+        <div class="friend-chat-panel" id="friendChatPanel" style="display:none;">
+            <div class="friend-chat-header">
+              <div id="friendChatTitle" class="friend-chat-title">Chat</div>
+              <button id="btnCloseFriendChat" class="icon-btn small"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="friendChatSubtitle" class="friend-chat-subtitle" style="display:none;"></div>
+            <div class="friend-chat-messages" id="friendChatMessages"></div>
+            <div class="chat-input-wrapper">
+              <input type="text" id="friendChatInput" placeholder="Message..." class="sleek-input small">
+              <button id="btnSendFriendChat" class="icon-btn small"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
-    `;
 
-  document.getElementById("btnCreateRoom").onclick = () => createRoom("normal");
-  document.getElementById("btnQuickMatch").onclick = () => findMatch("normal");
-  document.getElementById("btnRanked").onclick = () => findMatch("ranked");
+      </aside>
+    </div>
+  `;
+
+  document.getElementById("btnCreateRoom").onclick = () => {
+    const maxP =
+      parseInt(document.getElementById("maxPlayersSelect").value, 10) ||
+      DEFAULT_MAX_PLAYERS;
+    createRoom("normal", getSelectedDuration(), maxP);
+  };
+
+  document.getElementById("btnQuickMatch").onclick = () =>
+    findMatch("normal", getSelectedDuration(), 2);
+  document.getElementById("btnRanked").onclick = () =>
+    findMatch("ranked", getSelectedDuration(), 2);
+
   document.getElementById("btnJoinRoom").onclick = () => {
     const rid = document.getElementById("roomInput").value.trim();
     if (!rid) {
-      const t = translations[state.lang] || translations["en"];
       alert(t.placeholderRoomID || "Please enter a Room ID!");
       return;
     }
     joinRoom(rid);
   };
+
   document.getElementById("btnStartMatch").onclick = startMultiplayerGame;
   document.getElementById("btnReady").onclick = toggleReady;
   document.getElementById("btnAddFriend").onclick = addFriend;
-
-  // Chat Events
   document.getElementById("btnSendChat").onclick = sendChat;
-  document.getElementById("chatInput").addEventListener("keypress", (e) => {
-    if (e.key === "Enter") sendChat();
-  });
+  document.getElementById("btnInvite").onclick = copyInviteLink;
+
+  const chatInput = document.getElementById("chatInput");
+  if (chatInput) {
+    chatInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendChat();
+    });
+    chatInput.addEventListener("input", handleChatTyping);
+  }
 
   const btnSendFriendChat = document.getElementById("btnSendFriendChat");
   if (btnSendFriendChat) btnSendFriendChat.onclick = sendFriendMessage;
+
   const btnCloseFriendChat = document.getElementById("btnCloseFriendChat");
   if (btnCloseFriendChat) btnCloseFriendChat.onclick = closeFriendChat;
 
-  // Typing Indicator Event
-  document
-    .getElementById("chatInput")
-    .addEventListener("input", handleChatTyping);
-  document.getElementById("btnInvite").onclick = copyInviteLink;
+  const friendChatInput = document.getElementById("friendChatInput");
+  if (friendChatInput) {
+    friendChatInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendFriendMessage();
+    });
+  }
 
-  // Load User Profile & Friends
+  if (state.inviteRoomId) {
+    const roomInput = document.getElementById("roomInput");
+    if (roomInput) roomInput.value = state.inviteRoomId;
+  }
+
   loadUserProfile();
+  updateLobbyStatusLabel("Ready to queue");
 }
 
+function updateLobbyStatusLabel(text) {
+  const el = document.getElementById("lobbyStatusValue");
+  if (el) el.textContent = text;
+}
+
+function resetRoomSubscriptions() {
+  state.roomUnsubscribers.forEach((unsubscribe) => {
+    try {
+      unsubscribe();
+    } catch (error) {
+      console.warn("Room unsubscribe error", error);
+    }
+  });
+
+  state.roomUnsubscribers = [];
+  clearInterval(state.countdownTimer);
+  clearTimeout(state.countdownTransitionTimeout);
+  clearTimeout(state.roomFinishTimeout);
+  state.roomCountdownTarget = null;
+}
 function copyInviteLink() {
   if (!state.mpRoomId) return;
+
   const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${state.mpRoomId}`;
-  navigator.clipboard.writeText(inviteUrl).then(() => {
-    const t = translations[state.lang] || translations["en"];
-    // Dùng hàm showToast có sẵn hoặc alert tạm
-    const toastContainer = document.getElementById("toast-container");
-    if (toastContainer)
-      showToast(t.msgLinkCopied, "success"); // Giả sử hàm showToast global hoặc import
-    else alert(t.msgLinkCopied);
-  });
+  navigator.clipboard
+    .writeText(inviteUrl)
+    .then(() => {
+      const t = translations[state.lang] || translations.en;
+      showToast(t.msgLinkCopied || "Link copied to clipboard!", "success");
+    })
+    .catch(() => {
+      const t = translations[state.lang] || translations.en;
+      showToast(t.msgLinkCopyFailed || "Unable to copy invite link.", "error");
+    });
 }
 
-async function findMatch(mode) {
+async function findMatch(mode, duration, maxPlayers = 2) {
   const user = auth.currentUser;
   if (!user) return alert("Please login first!");
 
-  const t = translations[state.lang] || translations["en"];
+  const t = translations[state.lang] || translations.en;
   const btnId = mode === "ranked" ? "btnRanked" : "btnQuickMatch";
   const btn = document.getElementById(btnId);
-  const originalText = btn.innerHTML;
+  const originalText = btn ? btn.innerHTML : "";
 
-  btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t.lblSearching}`;
-  btn.disabled = true;
+  if (btn) {
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t.lblSearching || "Searching..."}`;
+    btn.disabled = true;
+  }
+
+  updateLobbyStatusLabel(`Searching ${getModeLabel(mode)} room...`);
 
   try {
-    // Lấy danh sách phòng (Trong thực tế nên dùng query orderByChild để tối ưu)
     const roomsRef = ref(rtdb, "rooms");
     const snapshot = await get(roomsRef);
     const rooms = snapshot.val() || {};
 
     let foundRoomId = null;
 
-    // Tìm phòng phù hợp: status='waiting', mode khớp, < 5 người
     for (const [id, room] of Object.entries(rooms)) {
-      if (room.status === "waiting" && room.mode === mode) {
-        const playerCount = room.players ? Object.keys(room.players).length : 0;
-        if (playerCount < 5) {
-          foundRoomId = id;
-          break;
-        }
+      const playerCount = room.players ? Object.keys(room.players).length : 0;
+      const sameDuration =
+        parseInt(room.duration || DEFAULT_DURATION, 10) === duration;
+      const sameMaxPlayers =
+        parseInt(room.maxPlayers || DEFAULT_MAX_PLAYERS, 10) === maxPlayers;
+
+      if (
+        room.status === "waiting" &&
+        room.mode === mode &&
+        sameDuration &&
+        sameMaxPlayers &&
+        playerCount < maxPlayers
+      ) {
+        foundRoomId = id;
+        break;
       }
     }
 
-    if (foundRoomId) joinRoom(foundRoomId);
-    else createRoom(mode);
-  } catch (e) {
-    console.error(e);
+    if (foundRoomId) {
+      await joinRoom(foundRoomId);
+    } else {
+      await createRoom(mode, duration, maxPlayers);
+    }
+  } catch (error) {
+    console.error(error);
     alert("Error finding match");
+    updateLobbyStatusLabel("Search failed");
   } finally {
-    btn.innerHTML = originalText;
-    btn.disabled = false;
+    if (btn) {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
   }
 }
 
-function createRoom(mode = "normal") {
+async function createRoom(
+  mode = "normal",
+  duration = DEFAULT_DURATION,
+  maxPlayers = DEFAULT_MAX_PLAYERS,
+) {
   const user = auth.currentUser;
   if (!user) return;
 
   const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const text = getRandomText("timetest", null, state.lang);
+
   state.mpRoomId = roomId;
   state.mpPlayerId = user.uid;
+  state.roomMode = mode;
+  state.roomMaxPlayers = maxPlayers;
+  state.matchDuration = duration;
+  state.currentRoomText = text;
+  state.roomStatus = "waiting";
 
   const roomRef = ref(rtdb, `rooms/${roomId}`);
-  set(roomRef, {
+
+  await set(roomRef, {
     host: user.uid,
     status: "waiting",
-    mode: mode, // Lưu chế độ chơi
-    text: getRandomText("timetest", null, state.lang),
+    mode,
+    duration,
+    maxPlayers,
+    text,
+    createdAt: Date.now(),
   });
-
-  joinRoom(roomId);
+  await joinRoom(roomId);
 }
 
 async function joinRoom(roomId) {
   const user = auth.currentUser;
   if (!user) {
-    const t = translations[state.lang] || translations["en"];
     alert("Please login first!");
     return;
   }
 
-  const t = translations[state.lang] || translations["en"];
+  const t = translations[state.lang] || translations.en;
+  updateLobbyStatusLabel("Joining room...");
 
   try {
-    // 0. Kiểm tra xem phòng có tồn tại không
     const roomRef = ref(rtdb, `rooms/${roomId}`);
     const roomSnapshot = await get(roomRef);
+
     if (!roomSnapshot.exists()) {
       alert(t.msgRoomNotFound || "Room not found!");
+      updateLobbyStatusLabel("Room not found");
       return;
     }
+
+    const roomData = roomSnapshot.val() || {};
+    const players = roomData.players || {};
+    const playerCount = Object.keys(players).length;
+    state.roomMaxPlayers = parseInt(
+      roomData.maxPlayers || DEFAULT_MAX_PLAYERS,
+      10,
+    );
+
+    if (roomData.status !== "waiting" && !players[user.uid]) {
+      alert(t.msgRoomStarted || "This match has already started.");
+      updateLobbyStatusLabel("Room already started");
+      return;
+    }
+
+    if (playerCount >= state.roomMaxPlayers && !players[user.uid]) {
+      alert(t.msgRoomFull || "Room is full!");
+      updateLobbyStatusLabel("Room full");
+      return;
+    }
+
+    resetRoomSubscriptions();
 
     state.mpRoomId = roomId;
     state.mpPlayerId = user.uid;
-    state.isUserReady = false;
-    updateReadyButtonUI();
+    state.isUserReady = Boolean(players[user.uid]?.isReady);
+    state.hostId = roomData.host || user.uid;
+    state.roomMode = roomData.mode || "normal";
+    state.matchDuration = parseInt(roomData.duration || DEFAULT_DURATION, 10);
+    state.currentRoomText =
+      roomData.text || getRandomText("timetest", null, state.lang);
+    state.roomStatus = roomData.status || "waiting";
+    state.resultsShown = false;
+    state.scoreSaved = false;
 
-    // 1. Kiểm tra số lượng người chơi (Max 5)
-    const playersRef = ref(rtdb, `rooms/${roomId}/players`);
-    const snapshot = await get(playersRef);
-    const currentPlayers = snapshot.val() || {};
-    if (Object.keys(currentPlayers).length >= 5) {
-      alert(t.msgRoomFull || "Room is full!");
-      return;
+    const playerRef = ref(rtdb, `rooms/${roomId}/players/${user.uid}`);
+    await set(playerRef, {
+      name: user.displayName || "Guest",
+      photoURL:
+        user.photoURL ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || "Guest")}&background=random`,
+      progress: players[user.uid]?.progress || 0,
+      isReady: players[user.uid]?.isReady || false,
+      wpm: players[user.uid]?.wpm || 0,
+      accuracy: players[user.uid]?.accuracy || 100,
+      isFinished: false,
+      finishedAt: null,
+      elo: state.myElo || 1000,
+    });
+
+    onDisconnect(playerRef).remove();
+    onDisconnect(ref(rtdb, `rooms/${roomId}/typing/${user.uid}`)).remove();
+
+    const mpRoomInfo = document.getElementById("mpRoomInfo");
+    if (mpRoomInfo) {
+      mpRoomInfo.classList.add("active");
+      mpRoomInfo.style.display = "flex";
     }
+
+    const roomIdDisplay = document.getElementById("roomIdDisplay");
+    if (roomIdDisplay) roomIdDisplay.innerText = roomId;
+
+    renderRoomBadge();
+    updateReadyButtonUI();
+    updateRoomActionVisibility();
+    updateMatchMeta();
+    updateLobbyStatusLabel(`Joined room ${roomId}`);
+
+    setupRoomListeners(roomId);
   } catch (error) {
     console.error("Error joining room:", error);
     alert(t.msgRoomNotFound || "Error joining room!");
-    return;
+    updateLobbyStatusLabel("Join failed");
   }
+}
 
-  const playerRef = ref(rtdb, `rooms/${roomId}/players/${user.uid}`);
-  set(playerRef, {
-    name: user.displayName || "Guest",
-    photoURL:
-      user.photoURL ||
-      `https://ui-avatars.com/api/?name=${user.displayName || "Guest"}&background=random`,
-    progress: 0,
-    isReady: false, // Mặc định chưa sẵn sàng
-    wpm: 0,
-  });
-  onDisconnect(playerRef).remove();
+function renderRoomBadge() {
+  const badge = document.getElementById("roomModeBadge");
+  if (!badge) return;
 
-  // UI Update
-  const mpLobbyControls = document.getElementById("mpLobbyControls");
-  const mpRoomInfo = document.getElementById("mpRoomInfo");
-  if (mpLobbyControls) mpLobbyControls.style.display = "none";
-  if (mpRoomInfo) {
-    mpRoomInfo.classList.add("active");
-    mpRoomInfo.style.display = "flex";
-  }
-  const roomIdDisplay = document.getElementById("roomIdDisplay");
-  if (roomIdDisplay) roomIdDisplay.innerText = roomId;
+  const color = state.roomMode === "ranked" ? "#facc15" : "#38bdf8";
+  badge.innerHTML = `
+    <span class="mode-dot" style="background:${color}"></span>
+    ${escapeHtml(getModeLabel(state.roomMode))} · ${escapeHtml(getDurationLabel(state.matchDuration))}
+  `;
+  badge.style.color = color;
+  badge.style.border = `1px solid ${color}`;
+}
 
-  // Hiển thị chế độ phòng
-  get(child(ref(rtdb), `rooms/${roomId}/mode`)).then((snap) => {
-    const mode = snap.val() || "normal";
-    const badge = document.getElementById("roomModeBadge");
-    const t = translations[state.lang] || translations["en"];
-    const modeName =
-      mode === "ranked" ? t.modeRanked || "Ranked" : t.modeNormal || "Normal";
-    badge.innerText = modeName;
-    badge.style.color = mode === "ranked" ? "#facc15" : "#38bdf8";
-    badge.style.border = `1px solid ${mode === "ranked" ? "#facc15" : "#38bdf8"}`;
-  });
+function setupRoomListeners(roomId) {
+  const roomUnsub = onValue(ref(rtdb, `rooms/${roomId}`), (snapshot) => {
+    const room = snapshot.val();
 
-  // Lấy Host ID để xác định quyền Kick
-  get(child(ref(rtdb), `rooms/${roomId}/host`)).then((snap) => {
-    state.hostId = snap.val();
-    if (state.hostId === user.uid) {
-      document.getElementById("btnStartMatch").style.display = "inline-block";
-      document.getElementById("waitingMsg").style.display = "none";
-    }
-  });
-
-  // Listeners
-  onValue(ref(rtdb, `rooms/${roomId}/players`), (snapshot) => {
-    const players = snapshot.val() || {};
-
-    // Kiểm tra nếu mình bị Kick (Không còn trong danh sách players nhưng state vẫn còn roomId)
-    if (state.mpRoomId && !players[state.mpPlayerId]) {
-      const t = translations[state.lang] || translations["en"];
-      alert(t.msgKicked || "You have been kicked!");
-      location.reload(); // Reload để reset
+    if (!room) {
+      showToast("Room closed.", "error");
+      setTimeout(() => location.reload(), 600);
       return;
     }
 
-    state.mpPlayersData = players;
-    renderPlayerList(players);
-  });
+    state.hostId = room.host || state.hostId;
+    state.roomMode = room.mode || state.roomMode;
+    state.matchDuration = parseInt(
+      room.duration || state.matchDuration || DEFAULT_DURATION,
+      10,
+    );
+    state.currentRoomText = room.text || state.currentRoomText;
+    state.roomStatus = room.status || "waiting";
 
-  onChildAdded(ref(rtdb, `rooms/${roomId}/chat`), (snapshot) => {
-    const msg = snapshot.val();
-    appendChatMessage(msg.user, msg.text);
-  });
+    renderRoomBadge();
+    updateRoomActionVisibility();
+    updateMatchMeta();
+    renderMiniRoomSnapshot();
 
-  setupTypingListener(roomId);
-
-  onValue(ref(rtdb, `rooms/${roomId}/status`), (snapshot) => {
-    if (snapshot.val() === "playing") {
-      get(child(ref(rtdb), `rooms/${roomId}/text`)).then((snap) => {
-        startGame(snap.val());
-      });
+    if (room.status === "countdown") {
+      startRoomCountdown(room);
+    } else if (room.status === "playing") {
+      hideCountdown();
+      if (!state.isGameActive) {
+        startGame(room.text || state.currentRoomText, state.matchDuration);
+      }
+    } else if (room.status === "finished") {
+      hideCountdown();
+      finalizeRoomResults();
     }
   });
+
+  const playersUnsub = onValue(
+    ref(rtdb, `rooms/${roomId}/players`),
+    (snapshot) => {
+      const players = snapshot.val() || {};
+
+      if (state.mpRoomId && !players[state.mpPlayerId]) {
+        const t = translations[state.lang] || translations.en;
+        alert(t.msgKicked || "You have been kicked!");
+        location.reload();
+        return;
+      }
+
+      state.mpPlayersData = players;
+      state.isUserReady = Boolean(players[state.mpPlayerId]?.isReady);
+      renderPlayerList(players);
+      renderRaceTrack(players);
+      renderMiniRoomSnapshot();
+      updateReadySummary(players);
+      maybeFinishRoom(players);
+    },
+  );
+
+  const chatUnsub = onChildAdded(
+    ref(rtdb, `rooms/${roomId}/chat`),
+    (snapshot) => {
+      const msg = snapshot.val();
+      appendChatMessage(msg.user, msg.text, msg.timestamp);
+    },
+  );
+
+  state.roomUnsubscribers.push(roomUnsub, playersUnsub, chatUnsub);
+  setupTypingListener(roomId);
+}
+
+function updateRoomActionVisibility() {
+  const startBtn = document.getElementById("btnStartMatch");
+  const waitingMsg = document.getElementById("waitingMsg");
+  const currentUid = auth.currentUser?.uid;
+  const isHost = state.hostId === currentUid;
+  const totalPlayers = Object.keys(state.mpPlayersData || {}).length;
+  // require at least 2 players to start a multiplayer match
+  const canStart =
+    isHost && state.roomStatus === "waiting" && totalPlayers >= 2;
+  if (startBtn) startBtn.style.display = canStart ? "inline-flex" : "none";
+  if (waitingMsg) {
+    waitingMsg.style.display = canStart ? "none" : "block";
+    const t = translations[state.lang] || translations.en;
+    waitingMsg.textContent =
+      state.roomStatus === "countdown"
+        ? t.lblCountdown || "Countdown started..."
+        : state.roomStatus === "playing"
+          ? t.lblInProgress || "Match in progress..."
+          : state.roomStatus === "finished"
+            ? t.lblFinished || "Match finished."
+            : t.lblWaiting || "Waiting for host...";
+  }
+
+  updateReadyButtonUI();
+}
+
+function updateMatchMeta() {
+  if (!els.matchMeta) return;
+
+  const totalPlayers = Object.keys(state.mpPlayersData || {}).length;
+  const currentUid = auth.currentUser?.uid;
+  const isHost = state.hostId === currentUid;
+
+  els.matchMeta.innerHTML = `
+    <span class="meta-pill"><i class="fas fa-layer-group"></i> ${escapeHtml(getModeLabel(state.roomMode))}</span>
+    <span class="meta-pill"><i class="fas fa-stopwatch"></i> ${escapeHtml(getDurationLabel(state.matchDuration))}</span>
+    <span class="meta-pill"><i class="fas fa-user-friends"></i> ${totalPlayers}/${state.roomMaxPlayers}</span>
+    <span class="meta-pill"><i class="fas fa-${isHost ? "crown" : "user"}"></i> ${isHost ? "Host" : "Player"}</span>
+  `;
+}
+
+function updateReadySummary(players = state.mpPlayersData) {
+  const list = Object.values(players || {});
+  const readyCount = list.filter((player) => player.isReady).length;
+  const totalCount = list.length;
+
+  const roomReadyCount = document.getElementById("roomReadyCount");
+  if (roomReadyCount)
+    roomReadyCount.innerText = `${readyCount}/${state.roomMaxPlayers}`;
+
+  if (els.readySummary) {
+    els.readySummary.innerText = `${readyCount}/${totalCount || 0} ready`;
+  }
+
+  const roomDurationValue = document.getElementById("roomDurationValue");
+  if (roomDurationValue)
+    roomDurationValue.innerText = getDurationLabel(state.matchDuration);
+}
+
+function getSortedPlayers(players = state.mpPlayersData) {
+  return Object.entries(players || {})
+    .map(([uid, player]) => ({ uid, ...player }))
+    .sort((a, b) => {
+      if (Number(Boolean(b.isFinished)) !== Number(Boolean(a.isFinished))) {
+        return Number(Boolean(b.isFinished)) - Number(Boolean(a.isFinished));
+      }
+
+      if ((b.progress || 0) !== (a.progress || 0)) {
+        return (b.progress || 0) - (a.progress || 0);
+      }
+
+      if ((b.wpm || 0) !== (a.wpm || 0)) {
+        return (b.wpm || 0) - (a.wpm || 0);
+      }
+
+      return (a.finishedAt || Infinity) - (b.finishedAt || Infinity);
+    });
+}
+
+function getRankBadgeHTML(elo) {
+  const t = translations[state.lang] || translations.en;
+  if (!elo) elo = 1000;
+  if (elo < 1200)
+    return `<span class="rank-badge rank-bronze">${t.rankBronze || "Bronze"}</span>`;
+  if (elo < 1400)
+    return `<span class="rank-badge rank-silver">${t.rankSilver || "Silver"}</span>`;
+  if (elo < 1600)
+    return `<span class="rank-badge rank-gold">${t.rankGold || "Gold"}</span>`;
+  if (elo < 2000)
+    return `<span class="rank-badge rank-diamond">${t.rankDiamond || "Diamond"}</span>`;
+  return `<span class="rank-badge rank-master">${t.rankMaster || "Master"}</span>`;
 }
 
 function renderPlayerList(players) {
   const list = document.getElementById("playerList");
+  if (!list) return;
+
   const currentUid = auth.currentUser?.uid;
   const isHost = state.hostId === currentUid;
-  const t = translations[state.lang] || translations["en"];
-  const readyText = t.btnReady || "Ready";
-  const notReadyText = t.btnNotReady || "Not Ready";
-
-  const playerArray = Object.entries(players);
+  const playerArray = Object.entries(players || {});
   let html = "";
 
-  // Render 5 Slots
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < state.roomMaxPlayers; i++) {
     if (i < playerArray.length) {
-      const [uid, p] = playerArray[i];
+      const [uid, player] = playerArray[i];
       const isPlayerHost = state.hostId === uid;
+      const isCurrentUser = currentUid === uid;
+      const progress = Math.max(0, Math.min(100, player.progress || 0));
+      const rankBadge = player.elo ? getRankBadgeHTML(player.elo) : "";
 
       html += `
-            <div class="player-card filled ${isPlayerHost ? "host" : ""}">
-                ${isHost && uid !== currentUid ? `<button class="kick-btn" onclick="kickPlayer('${uid}')"><i class="fas fa-times"></i></button>` : ""}
-                <img src="${p.photoURL}" class="avatar" alt="Avatar">
-                <div class="name">${p.name}</div>
-                <div class="stats">${p.wpm || 0} WPM</div>
-                
-                <div class="card-status ${p.isReady ? "ready" : "not-ready"}">
-                    ${p.isReady ? '<i class="fas fa-check"></i> Ready' : "Waiting"}
-                </div>
-            </div>`;
+        <div class="sleek-player-card ${isPlayerHost ? "host" : ""} ${isCurrentUser ? "me" : ""}">
+          ${
+            isHost && uid !== currentUid && state.roomStatus === "waiting"
+              ? `<button class="kick-btn" onclick="kickPlayer('${uid}')"><i class="fas fa-times"></i></button>`
+              : ""
+          }
+          <div class="sp-avatar-wrap">
+            <img src="${escapeHtml(player.photoURL || "")}" class="sp-avatar" alt="Avatar">
+            ${isPlayerHost ? '<div class="sp-host-badge"><i class="fas fa-crown"></i></div>' : ""}
+          </div>
+          <div class="sp-info">
+            <div class="sp-name">${escapeHtml(player.name || "Guest")} ${isCurrentUser ? "<span>(You)</span>" : ""} ${rankBadge}</div>
+            <div class="sp-stats">${player.wpm || 0} WPM · ${player.accuracy || 100}%</div>
+            <div class="sp-progress-bar"><div class="sp-progress-fill" style="width:${progress}%"></div></div>
+          </div>
+          <div class="sp-status ${player.isReady ? "ready" : ""}">
+            ${player.isFinished ? '<i class="fas fa-flag-checkered"></i>' : player.isReady ? '<i class="fas fa-check"></i>' : '<i class="fas fa-hourglass-half"></i>'}
+          </div>
+        </div>
+      `;
     } else {
       html += `
-            <div class="player-card empty">
-                <i class="fas fa-plus" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                <span>Empty Slot</span>
-            </div>`;
+        <div class="sleek-player-card empty">
+          <div class="sp-avatar-wrap empty"><i class="fas fa-plus"></i></div>
+          <div class="sp-info"><div class="sp-name empty">Empty Slot</div></div>
+        </div>
+      `;
     }
   }
+
   list.innerHTML = html;
+}
+
+function renderRaceTrack(players) {
+  if (!els.raceTrack) return;
+
+  const sorted = getSortedPlayers(players);
+  const currentUid = auth.currentUser?.uid;
+
+  if (!sorted.length) {
+    els.raceTrack.innerHTML = `<div class="empty-race-state">No racers in room yet.</div>`;
+    return;
+  }
+
+  els.raceTrack.innerHTML = sorted
+    .map((player, index) => {
+      const progress = Math.max(0, Math.min(100, player.progress || 0));
+      const isMe = player.uid === currentUid;
+      return `
+        <div class="race-lane ${isMe ? "me" : ""}">
+          <div class="lane-player">${escapeHtml(player.name || "Guest")}</div>
+          <div class="lane-track">
+            <div class="lane-progress" style="width:${progress}%"></div>
+            <div class="lane-car" style="left:${progress}%">
+              <img src="${escapeHtml(player.photoURL || "")}" class="lane-avatar">
+              <div class="lane-wpm">${player.wpm || 0}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function renderMiniRoomSnapshot() {
+  if (!els.miniRoomEvents) return;
+
+  const sorted = getSortedPlayers();
+  const leader = sorted[0];
+  const currentUid = auth.currentUser?.uid;
+  const me = state.mpPlayersData?.[currentUid];
+  const totalPlayers = Object.keys(state.mpPlayersData || {}).length;
+
+  els.miniRoomEvents.innerHTML = `
+    <div class="snapshot-item">
+      <span>Status</span>
+      <strong>${escapeHtml(state.roomStatus || "waiting")}</strong>
+    </div>
+    <div class="snapshot-item">
+      <span>Room</span>
+      <strong>${escapeHtml(state.mpRoomId || "-")}</strong>
+    </div>
+    <div class="snapshot-item">
+      <span>Players</span>
+      <strong>${totalPlayers}/${state.roomMaxPlayers}</strong>
+    </div>
+    <div class="snapshot-item">
+      <span>Leader</span>
+      <strong>${leader ? `${escapeHtml(leader.name)} · ${leader.wpm || 0} WPM` : "-"}</strong>
+    </div>
+    <div class="snapshot-item">
+      <span>Your progress</span>
+      <strong>${me ? `${me.progress || 0}%` : "-"}</strong>
+    </div>
+    <div class="snapshot-item">
+      <span>Text length</span>
+      <strong>${(state.currentRoomText || "").length} chars</strong>
+    </div>
+  `;
 }
 
 function toggleReady() {
   if (!state.mpRoomId || !state.mpPlayerId) return;
+  if (state.roomStatus !== "waiting") return;
+
   state.isUserReady = !state.isUserReady;
 
   update(ref(rtdb, `rooms/${state.mpRoomId}/players/${state.mpPlayerId}`), {
     isReady: state.isUserReady,
   });
+
   updateReadyButtonUI();
 }
 
 function updateReadyButtonUI() {
   const btn = document.getElementById("btnReady");
-  const t = translations[state.lang] || translations["en"];
-  if (btn) {
-    btn.innerText = state.isUserReady
-      ? t.btnNotReady || "Not Ready"
-      : t.btnReady || "Ready";
-    btn.classList.toggle("is-ready", state.isUserReady);
-  }
+  const t = translations[state.lang] || translations.en;
+
+  if (!btn) return;
+
+  btn.innerText = state.isUserReady
+    ? t.btnNotReady || "Not Ready"
+    : t.btnReady || "Ready";
+  btn.classList.toggle("is-ready", state.isUserReady);
+  btn.disabled = state.roomStatus !== "waiting";
 }
 
-function startMultiplayerGame() {
-  // Check if all players are ready
-  const allReady = Object.values(state.mpPlayersData).every((p) => p.isReady);
+async function startMultiplayerGame() {
+  const players = Object.values(state.mpPlayersData || {});
+  const t = translations[state.lang] || translations.en;
+
+  if (players.length < 2) {
+    alert(
+      t.msgNeedMorePlayers ||
+        "At least 2 players are required to start the match.",
+    );
+    return;
+  }
+
+  const allReady = players.every((player) => player.isReady);
   if (!allReady) {
-    const t = translations[state.lang] || translations["en"];
     alert(t.msgNotAllReady || "All players must be Ready!");
     return;
   }
-  update(ref(rtdb, `rooms/${state.mpRoomId}`), { status: "playing" });
-}
 
-// Helper for private chat button
-window.mentionUser = function (name) {
-  const input = document.getElementById("chatInput");
-  if (input) {
-    input.value = `@${name} `;
-    input.focus();
-  }
-};
+  const countdownEndsAt = Date.now() + COUNTDOWN_SECONDS * 1000;
+  const newText = getRandomText("timetest", null, state.lang);
+  const updates = {
+    [`rooms/${state.mpRoomId}/status`]: "countdown",
+    [`rooms/${state.mpRoomId}/text`]: newText,
+    [`rooms/${state.mpRoomId}/duration`]: state.matchDuration,
+    [`rooms/${state.mpRoomId}/countdownEndsAt`]: countdownEndsAt,
+    [`rooms/${state.mpRoomId}/finishedAt`]: null,
+  };
 
-// Helper for Kick button
-window.kickPlayer = function (uid) {
-  const t = translations[state.lang] || translations["en"];
-  if (!state.mpRoomId || state.hostId !== auth.currentUser?.uid) return;
-  if (confirm(t.confirmKick || "Kick this player?")) {
-    remove(ref(rtdb, `rooms/${state.mpRoomId}/players/${uid}`));
-  }
-};
-
-function handleChatTyping() {
-  if (!state.mpRoomId || !auth.currentUser) return;
-
-  const typingRef = ref(
-    rtdb,
-    `rooms/${state.mpRoomId}/typing/${auth.currentUser.uid}`,
-  );
-
-  // Set typing status
-  set(typingRef, auth.currentUser.displayName || "Guest");
-  onDisconnect(typingRef).remove();
-
-  // Clear sau 2s nếu không gõ nữa
-  if (state.typingTimeout) clearTimeout(state.typingTimeout);
-  state.typingTimeout = setTimeout(() => {
-    remove(typingRef);
-  }, 2000);
-}
-
-function setupTypingListener(roomId) {
-  const typingIndicator = document.getElementById("typingIndicator");
-  if (!typingIndicator) return;
-
-  onValue(ref(rtdb, `rooms/${roomId}/typing`), (snapshot) => {
-    const data = snapshot.val() || {};
-    const currentUid = auth.currentUser?.uid;
-
-    // Lọc bỏ bản thân
-    const names = Object.keys(data)
-      .filter((uid) => uid !== currentUid)
-      .map((uid) => data[uid]);
-
-    if (names.length > 0) {
-      const t = translations[state.lang] || translations["en"];
-      const text = names.join(", ") + " " + (t.lblTyping || "is typing...");
-      typingIndicator.innerText = text;
-    } else {
-      typingIndicator.innerText = "";
-    }
-  });
-}
-
-function sendChat() {
-  const input = document.getElementById("chatInput");
-  if (!input) return;
-
-  const text = input.value.trim();
-  if (!text) return;
-
-  if (!state.mpRoomId) {
-    console.error("Chưa tham gia phòng nào!");
-    return;
-  }
-
-  const user = auth.currentUser;
-  if (!user) {
-    alert("Bạn cần đăng nhập để chat!");
-    return;
-  }
-
-  push(ref(rtdb, `rooms/${state.mpRoomId}/chat`), {
-    user: user.displayName || "Guest",
-    text: text,
-    timestamp: Date.now(),
-  })
-    .then(() => console.log("Sent"))
-    .catch((err) => console.error("Lỗi gửi tin nhắn:", err));
-
-  // Xóa trạng thái typing ngay lập tức khi gửi
-  if (state.typingTimeout) clearTimeout(state.typingTimeout);
-  remove(ref(rtdb, `rooms/${state.mpRoomId}/typing/${user.uid}`));
-
-  input.value = "";
-  input.focus();
-}
-
-function appendChatMessage(user, text) {
-  const container = document.getElementById("chatMessages");
-  if (!container) return;
-
-  // Tạo element an toàn để tránh lỗi XSS và hiển thị đúng
-  const msgDiv = document.createElement("div");
-  msgDiv.className = "chat-msg";
-
-  const userStrong = document.createElement("strong");
-  userStrong.textContent = user + ":";
-
-  const textNode = document.createTextNode(" " + text);
-
-  msgDiv.appendChild(userStrong);
-  msgDiv.appendChild(textNode);
-
-  container.appendChild(msgDiv);
-  container.scrollTop = container.scrollHeight;
-}
-
-// --- FRIEND SYSTEM (FIRESTORE) ---
-async function loadUserProfile() {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  // 1. Get User Data (Short ID & Friends)
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
-
-  let data;
-  if (!userSnap.exists()) {
-    const newShortId = Math.floor(
-      10000000 + Math.random() * 90000000,
-    ).toString();
-    await setDoc(
-      userRef,
-      {
-        uid: user.uid,
-        name: user.displayName || "Guest",
-        email: user.email || "",
-        photoURL: user.photoURL || "",
-        createdAt: new Date().toISOString(),
-        shortId: newShortId,
-        role: "member",
-        wpm_best: 0,
-        matches_played: 0,
-        friends: [],
-      },
-      { merge: true },
-    );
-    data = { shortId: newShortId, friends: [] };
-  } else {
-    data = userSnap.data();
-  }
-
-  const idDisplay = document.getElementById("myShortId");
-  if (idDisplay) {
-    if (!data.shortId) {
-      const newShortId = Math.floor(
-        10000000 + Math.random() * 90000000,
-      ).toString();
-      await updateDoc(userRef, { shortId: newShortId });
-      idDisplay.innerText = `ID: ${newShortId}`;
-    } else {
-      idDisplay.innerText = `ID: ${data.shortId}`;
-    }
-  }
-
-  // Render Friends
-  if (data.friends && data.friends.length > 0) {
-    renderFriendsList(data.friends);
-  } else {
-    renderFriendsList([]);
-  }
-}
-
-async function addFriend() {
-  const input = document.getElementById("friendIdInput");
-  const friendId = input.value.trim();
-  const t = translations[state.lang] || translations["en"];
-  const user = auth.currentUser;
-
-  if (!user) {
-    alert(t.msgLoginRequired || "You must be logged in to add friends.");
-    return;
-  }
-
-  if (!friendId) return;
-
-  // Find user by shortId
-  try {
-    await user.getIdToken(true);
-  } catch (error) {
-    console.error("addFriend token refresh failed", error);
-    alert(
-      t.msgAuthExpired ||
-        "Your session may have expired. Please refresh and login again.",
-    );
-    return;
-  }
-
-  const usersRef = collection(db, "users");
-  const q = query(usersRef, where("shortId", "==", friendId));
-  let querySnapshot;
-  try {
-    querySnapshot = await getDocs(q);
-  } catch (error) {
-    console.error("addFriend query failed", error);
-    alert(
-      t.msgFriendQueryError ||
-        "Unable to search users right now. Please re-login or try again.",
-    );
-    return;
-  }
-
-  if (querySnapshot.empty) {
-    alert(t.msgUserNotFound || "User not found!");
-    return;
-  }
-
-  const friendDoc = querySnapshot.docs[0];
-  const friendData = friendDoc.data();
-
-  if (!friendData.uid) {
-    alert(t.msgUserNotFound || "User not found!");
-    return;
-  }
-
-  if (friendData.uid === user.uid) {
-    alert(t.msgCannotAddYourself || "You cannot add yourself.");
-    return;
-  }
-
-  const currentUserRef = doc(db, "users", user.uid);
-  let currentUserSnap = await getDoc(currentUserRef);
-
-  if (!currentUserSnap.exists()) {
-    await setDoc(
-      currentUserRef,
-      {
-        uid: user.uid,
-        name: user.displayName || "Guest",
-        email: user.email || "",
-        photoURL: user.photoURL || "",
-        createdAt: new Date().toISOString(),
-        shortId: "",
-        role: "member",
-        wpm_best: 0,
-        matches_played: 0,
-        friends: [],
-      },
-      { merge: true },
-    );
-    currentUserSnap = await getDoc(currentUserRef);
-  }
-
-  const currentFriends = currentUserSnap.exists()
-    ? currentUserSnap.data().friends || []
-    : [];
-
-  if (currentFriends.some((f) => f.uid === friendData.uid)) {
-    alert(t.msgFriendAlreadyAdded || "Friend already added!");
-    return;
-  }
-
-  try {
-    await updateDoc(currentUserRef, {
-      friends: arrayUnion({
-        uid: friendData.uid,
-        name: friendData.name || friendData.email || "Friend",
-        photoURL: friendData.photoURL || "",
-        shortId: friendData.shortId || "",
-      }),
-    });
-  } catch (error) {
-    console.error("addFriend update failed", error);
-    alert(
-      t.msgFriendSaveError ||
-        "Unable to save friend. Please re-login or try again.",
-    );
-    return;
-  }
-
-  alert(t.msgFriendAdded || "Friend added!");
-  input.value = "";
-  loadUserProfile(); // Reload list
-}
-
-function inviteFriendToRoom(friend) {
-  const t = translations[state.lang] || translations["en"];
-  if (!state.mpRoomId) {
-    alert(t.msgInviteRequireRoom || "Join or create a room to invite friends.");
-    return;
-  }
-
-  const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${state.mpRoomId}`;
-  navigator.clipboard
-    .writeText(inviteUrl)
-    .then(() => {
-      alert(`${friend.name} ${t.msgLinkCopied || "Link copied to clipboard!"}`);
-    })
-    .catch(() => {
-      alert(t.msgLinkCopyFailed || "Unable to copy invite link.");
-    });
-}
-
-function renderFriendsList(friends) {
-  const list = document.getElementById("friendsList");
-  const t = translations[state.lang] || translations["en"];
-  if (!list) return;
-
-  if (!friends || friends.length === 0) {
-    list.innerHTML = `<div class="no-friends">${t.msgNoFriends || "No friends yet. Add someone by ID above."}</div>`;
-    return;
-  }
-
-  list.innerHTML = friends
-    .map(
-      (f) => `
-        <div class="friend-item" data-uid="${f.uid}" data-name="${f.name || "Friend"}">
-            <img src="${f.photoURL || "https://ui-avatars.com/api/?background=random"}" class="player-avatar" alt="${f.name}">
-            <span>${f.name || "Friend"}</span>
-            <button type="button" class="btn-icon small friend-invite-btn" data-uid="${f.uid}" data-name="${f.name || "Friend"}" title="${t.btnInvite || "Invite"}">
-                <i class="fas fa-link"></i>
-            </button>
-            <div class="friend-status"></div>
-        </div>
-    `,
-    )
-    .join("");
-
-  list.querySelectorAll(".friend-item").forEach((item) => {
-    item.addEventListener("click", () => {
-      const friend = {
-        uid: item.dataset.uid,
-        name: item.dataset.name,
-      };
-      openFriendChat(friend);
-    });
+  Object.keys(state.mpPlayersData).forEach((uid) => {
+    updates[`rooms/${state.mpRoomId}/players/${uid}/progress`] = 0;
+    updates[`rooms/${state.mpRoomId}/players/${uid}/wpm`] = 0;
+    updates[`rooms/${state.mpRoomId}/players/${uid}/accuracy`] = 100;
+    updates[`rooms/${state.mpRoomId}/players/${uid}/isFinished`] = false;
+    updates[`rooms/${state.mpRoomId}/players/${uid}/finishedAt`] = null;
   });
 
-  list.querySelectorAll(".friend-invite-btn").forEach((btn) => {
-    btn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const friend = { uid: btn.dataset.uid, name: btn.dataset.name };
-      inviteFriendToRoom(friend);
-    });
-  });
+  await update(ref(rtdb), updates);
 }
 
-let friendChatUnsubscribe = null;
-let currentFriendChat = null;
-
-function getFriendChatId(uid1, uid2) {
-  return [uid1, uid2].sort().join("_");
-}
-
-function closeFriendChat() {
-  const panel = document.getElementById("friendChatPanel");
-  if (panel) panel.style.display = "none";
-  currentFriendChat = null;
-  if (friendChatUnsubscribe) {
-    friendChatUnsubscribe();
-    friendChatUnsubscribe = null;
-  }
-}
-
-async function openFriendChat(friend) {
-  if (!friend || !friend.uid) return;
-
-  const t = translations[state.lang] || translations["en"];
-  const title = document.getElementById("friendChatTitle");
-  const subtitle = document.getElementById("friendChatSubtitle");
-  const panel = document.getElementById("friendChatPanel");
-  const chatMessages = document.getElementById("friendChatMessages");
-
-  if (!panel || !chatMessages || !title || !subtitle) return;
-
-  panel.style.display = "flex";
-  title.innerText = `${friend.name || t.lblFriends} ${t.lblChat}`;
-  subtitle.innerText = t.msgFriendChatActive || "Chat with your friend.";
-  chatMessages.innerHTML = `<div class="loading">${t.lblLoading || "Loading..."}</div>`;
-
-  currentFriendChat = friend;
-  if (friendChatUnsubscribe) friendChatUnsubscribe();
-
-  const chatId = getFriendChatId(auth.currentUser.uid, friend.uid);
-  const messagesRef = collection(db, "friend_chats", chatId, "messages");
-  const q = query(messagesRef, orderBy("timestamp", "asc"));
-
-  friendChatUnsubscribe = onSnapshot(q, (snapshot) => {
-    const messages = [];
-    snapshot.forEach((doc) => messages.push(doc.data()));
-    renderFriendChatMessages(messages, friend);
-  });
-}
-
-function renderFriendChatMessages(messages, friend) {
-  const chatMessages = document.getElementById("friendChatMessages");
-  const t = translations[state.lang] || translations["en"];
-  if (!chatMessages) return;
-
-  if (!messages || messages.length === 0) {
-    chatMessages.innerHTML = `<div class="no-friends">${t.msgNoChatHistory || "No messages yet. Say hello!"}</div>`;
-    return;
-  }
-
-  chatMessages.innerHTML = messages
-    .map((message) => {
-      const isMine = message.senderUid === auth.currentUser.uid;
-      return `
-        <div class="friend-chat-bubble ${isMine ? "mine" : "friend"}">
-          <div class="friend-chat-text">${message.text}</div>
-          <div class="friend-chat-meta">${isMine ? t.lblYou : friend.name} · ${new Date(message.timestamp?.toDate ? message.timestamp.toDate() : message.timestamp).toLocaleTimeString()}</div>
-        </div>
-      `;
-    })
-    .join("\n");
-
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-async function sendFriendMessage() {
-  const input = document.getElementById("friendChatInput");
-  if (!input || !currentFriendChat || !currentFriendChat.uid) return;
-
-  const text = input.value.trim();
-  if (!text) return;
-
-  const chatId = getFriendChatId(auth.currentUser.uid, currentFriendChat.uid);
-  const messagesRef = collection(db, "friend_chats", chatId, "messages");
-
-  await addDoc(messagesRef, {
-    senderUid: auth.currentUser.uid,
-    receiverUid: currentFriendChat.uid,
-    text,
-    timestamp: serverTimestamp(),
-  });
-
-  input.value = "";
-}
-
-// --- GAME ENGINE ---
-
-function startGame(text) {
-  els.lobby.style.display = "none";
-  els.game.style.display = "block";
-
-  state.text = text;
+function prepareGameUI(text, duration) {
+  state.text = text || "";
+  state.currentRoomText = text || "";
   state.charIndex = 0;
   state.mistakes = 0;
   state.isTyping = false;
-  state.timeLeft = 0;
+  state.isGameActive = false; // Not active until playing starts
+  state.isPlayerFinished = false;
+  state.resultsShown = false;
+  state.scoreSaved = false;
+  state.maxTime = parseInt(duration || DEFAULT_DURATION, 10);
+  state.timeLeft = state.maxTime;
+  state.heatmap = {};
   state.mpChartData = {};
+  state.latestStats = { wpm: 0, accuracy: 100, progress: 0 };
 
-  renderText(text);
-  initKeyboard(); // Khởi tạo bàn phím
-  updateKeyboardHints(text[0]);
-  els.input.value = "";
-  els.input.focus();
+  clearInterval(state.timer);
+  clearTimeout(state.roomFinishTimeout);
 
-  // Start Timer
-  state.timer = setInterval(() => {
-    state.timeLeft++;
-    const m = Math.floor(state.timeLeft / 60);
-    const s = state.timeLeft % 60;
-    els.time.innerText = `${m}:${s < 10 ? "0" : ""}${s}`;
-    updateWPMChart(state.timeLeft);
-  }, 1000);
+  if (els.lobby.style.display !== "none") {
+    els.lobby.classList.add("section-fade-out");
+    setTimeout(() => {
+      els.lobby.style.display = "none";
+      els.game.style.display = "block";
+      els.game.classList.add("section-fade-in");
+      els.resultOverlay.classList.remove("active");
+
+      setTimeout(() => {
+        els.lobby.classList.remove("section-fade-out");
+        els.game.classList.remove("section-fade-in");
+      }, 400);
+    }, 200);
+  }
+
+  if (els.time) els.time.innerText = formatTime(state.timeLeft);
+  if (els.wpm) els.wpm.innerText = "0";
+  if (els.acc) els.acc.innerText = "100%";
+  if (els.gameStatusBadge) els.gameStatusBadge.innerText = "Starting...";
+
+  renderText(state.text);
+  initKeyboard();
+  updateKeyboardHints(state.text[0]);
+  renderRaceTrack(state.mpPlayersData);
+  renderMiniRoomSnapshot();
+  updateMatchMeta();
+
+  if (els.input) {
+    els.input.value = "";
+    els.input.disabled = true; // Wait for GO!
+  }
+  if (els.overlay) els.overlay.classList.add("hidden");
+
+  syncLocalPlayerState({
+    progress: 0,
+    wpm: 0,
+    accuracy: 100,
+    isFinished: false,
+    finishedAt: null,
+  });
+}
+
+function startRoomCountdown(room) {
+  const target = room.countdownEndsAt || Date.now() + COUNTDOWN_SECONDS * 1000;
+  if (state.roomCountdownTarget === target) return;
+
+  clearInterval(state.countdownTimer);
+  clearTimeout(state.countdownTransitionTimeout);
+
+  state.roomCountdownTarget = target;
+
+  // Prepare UI before countdown finishes so users see the game board
+  prepareGameUI(room.text, room.duration);
+
+  if (els.countdownOverlay) els.countdownOverlay.classList.add("active");
+
+  const tick = () => {
+    const remaining = Math.max(0, target - Date.now());
+    const seconds = Math.ceil(remaining / 1000);
+    if (els.countdownNumber) {
+      // show GO when <= 1s left to give clients time to render
+      els.countdownNumber.innerText =
+        remaining <= 1000 ? "GO!" : String(seconds);
+    }
+  };
+
+  tick();
+
+  state.countdownTimer = setInterval(() => {
+    tick();
+    if (Date.now() >= target) {
+      clearInterval(state.countdownTimer);
+      if (els.countdownNumber) els.countdownNumber.innerText = "GO!";
+    }
+  }, 120);
+
+  if (auth.currentUser?.uid === state.hostId) {
+    state.countdownTransitionTimeout = setTimeout(
+      () => {
+        update(ref(rtdb, `rooms/${state.mpRoomId}`), {
+          status: "playing",
+          startedAt: Date.now(),
+        });
+      },
+      Math.max(0, target - Date.now()) + 150,
+    );
+  }
+}
+
+function hideCountdown() {
+  clearInterval(state.countdownTimer);
+  clearTimeout(state.countdownTransitionTimeout);
+  state.countdownTransitionTimeout = null;
+  state.roomCountdownTarget = null;
+
+  if (els.countdownOverlay) {
+    els.countdownOverlay.classList.remove("active");
+  }
+}
+
+function startGame(text, duration = DEFAULT_DURATION) {
+  // Fallback in case prepareGameUI wasn't called (e.g. joined mid-game)
+  if (els.lobby.style.display !== "none") {
+    prepareGameUI(text, duration);
+  }
+
+  state.isGameActive = true;
+
+  if (els.gameStatusBadge) els.gameStatusBadge.innerText = "Racing";
+
+  if (els.input) {
+    els.input.disabled = false;
+    els.input.focus();
+  }
+
+  if (els.overlay) els.overlay.classList.add("hidden");
+
+  clearInterval(state.timer);
+  state.timer = setInterval(
+    () => {
+      state.timeLeft -= 1;
+      if (els.time) els.time.innerText = formatTime(state.timeLeft);
+      updateStats();
+      updateWPMChart(); // Update WPM chart with current player data
+      renderMiniRoomSnapshot();
+
+      if (state.timeLeft <= 0) {
+        finishPlayerRun("time");
+      }
+    },
+    isMobileDevice() ? 2000 : 1000,
+  );
+  // If the current user is the host, schedule server-side room finish
+  if (auth.currentUser?.uid === state.hostId) {
+    clearTimeout(state.roomFinishTimeout);
+    state.roomFinishTimeout = setTimeout(
+      () => {
+        update(ref(rtdb, `rooms/${state.mpRoomId}`), {
+          status: "finished",
+          finishedAt: Date.now(),
+        });
+      },
+      state.maxTime * 1000 + 1200,
+    );
+  }
 }
 
 function renderText(text) {
   els.display.innerHTML = "";
   state.charSpans = [];
+
   text.split("").forEach((char) => {
     const span = document.createElement("span");
     span.innerText = char;
     els.display.appendChild(span);
     state.charSpans.push(span);
   });
+
   if (state.charSpans.length > 0) {
     state.charSpans[0].classList.add("active");
     if (state.smoothCaret) updateSmoothCaret();
@@ -1031,14 +1190,18 @@ function renderText(text) {
 }
 
 function handleTyping() {
+  if (!state.isGameActive || state.isPlayerFinished) return;
+
   if (!state.isTyping) {
     state.isTyping = true;
-    els.overlay.classList.add("hidden");
+    if (els.overlay) els.overlay.classList.add("hidden");
   }
 
   const inputChars = els.input.value.split("");
   const typedChar = inputChars[state.charIndex];
   const currSpan = state.charSpans[state.charIndex];
+
+  if (!currSpan) return;
 
   if (state.soundEnabled) playMechanicalClick();
 
@@ -1046,9 +1209,15 @@ function handleTyping() {
     if (state.charIndex > 0) {
       state.charIndex--;
       const prevSpan = state.charSpans[state.charIndex];
-      if (prevSpan.classList.contains("incorrect")) state.mistakes--;
+
+      if (prevSpan.classList.contains("incorrect")) {
+        state.mistakes = Math.max(0, state.mistakes - 1);
+      }
+
       prevSpan.classList.remove("correct", "incorrect", "active");
       prevSpan.classList.add("active");
+      updateKeyboardHints(prevSpan.innerText);
+      if (state.smoothCaret) updateSmoothCaret();
     }
   } else {
     if (currSpan.innerText === typedChar) {
@@ -1056,127 +1225,282 @@ function handleTyping() {
     } else {
       state.mistakes++;
       currSpan.classList.add("incorrect");
-      // Heatmap
       const expectedChar = currSpan.innerText.toLowerCase();
       state.heatmap[expectedChar] = (state.heatmap[expectedChar] || 0) + 1;
     }
+
     currSpan.classList.remove("active");
     state.charIndex++;
 
     if (state.charIndex < state.charSpans.length) {
       const nextSpan = state.charSpans[state.charIndex];
       nextSpan.classList.add("active");
-      // Auto Scroll
+
       if (
         nextSpan.offsetTop >
         els.display.clientHeight + els.display.scrollTop - 50
       ) {
         els.display.scrollTop = nextSpan.offsetTop - 50;
       }
-      updateKeyboardHints(state.charSpans[state.charIndex].innerText);
+
+      updateKeyboardHints(nextSpan.innerText);
       if (state.smoothCaret) updateSmoothCaret();
     } else {
-      finishGame();
+      finishPlayerRun("completed");
     }
   }
 
   updateStats();
   if (state.heatmapEnabled) updateKeyboardHeatmap();
 
-  // Sync Progress
-  if (state.mpRoomId) {
-    const progress = Math.floor(
-      (state.charIndex / state.charSpans.length) * 100,
-    );
-    const wpm = parseInt(els.wpm.innerText);
-    update(ref(rtdb, `rooms/${state.mpRoomId}/players/${state.mpPlayerId}`), {
-      progress,
-      wpm,
+  syncLocalPlayerState({
+    progress: state.latestStats.progress,
+    wpm: state.latestStats.wpm,
+    accuracy: state.latestStats.accuracy,
+  });
+}
+
+function updateStats() {
+  const elapsedSeconds = state.maxTime - state.timeLeft;
+  const elapsedMinutes = Math.max(elapsedSeconds / 60, 1 / 600);
+  const netChars = Math.max(0, state.charIndex - state.mistakes);
+  const wpm = Math.max(0, Math.round(netChars / 5 / elapsedMinutes));
+  const accuracy =
+    state.charIndex > 0
+      ? Math.max(
+          0,
+          Math.round(
+            ((state.charIndex - state.mistakes) / state.charIndex) * 100,
+          ),
+        )
+      : 100;
+  const progress = state.charSpans.length
+    ? Math.min(
+        100,
+        Math.round((state.charIndex / state.charSpans.length) * 100),
+      )
+    : 0;
+
+  state.latestStats = {
+    wpm,
+    accuracy,
+    progress,
+  };
+
+  if (els.wpm) els.wpm.innerText = String(wpm);
+  if (els.acc) els.acc.innerText = `${accuracy}%`;
+}
+
+function syncLocalPlayerState(partial) {
+  if (!state.mpRoomId || !state.mpPlayerId) return;
+
+  update(
+    ref(rtdb, `rooms/${state.mpRoomId}/players/${state.mpPlayerId}`),
+    partial,
+  );
+}
+
+function finishPlayerRun(reason = "completed") {
+  if (state.isPlayerFinished) return;
+
+  clearInterval(state.timer);
+  state.isPlayerFinished = true;
+  state.isGameActive = false;
+
+  if (els.input) {
+    els.input.value = "";
+    els.input.disabled = true;
+  }
+
+  if (els.overlay) els.overlay.classList.remove("hidden");
+  if (els.gameStatusBadge) {
+    els.gameStatusBadge.innerText =
+      reason === "completed" ? "Finished" : "Time Up";
+  }
+
+  syncLocalPlayerState({
+    progress: reason === "completed" ? 100 : state.latestStats.progress,
+    wpm: state.latestStats.wpm,
+    accuracy: state.latestStats.accuracy,
+    isFinished: true,
+    finishedAt: Date.now(),
+  });
+
+  showToast(
+    reason === "completed"
+      ? "Run finished. Waiting for room results..."
+      : "Time up. Waiting for room results...",
+    "success",
+  );
+}
+
+function maybeFinishRoom(players) {
+  if (!state.mpRoomId || auth.currentUser?.uid !== state.hostId) return;
+  if (state.roomStatus !== "playing") return;
+
+  const entries = Object.values(players || {});
+  if (!entries.length) return;
+
+  const everyoneFinished = entries.every((player) => player.isFinished);
+  if (everyoneFinished) {
+    update(ref(rtdb, `rooms/${state.mpRoomId}`), {
+      status: "finished",
+      finishedAt: Date.now(),
     });
   }
 }
 
-function updateStats() {
-  const timePassed = state.timeLeft / 60;
-  if (timePassed === 0) return;
+function finalizeRoomResults() {
+  if (state.resultsShown) return;
 
-  const netChars = Math.max(0, state.charIndex - state.mistakes);
-  const wpm = Math.round(
-    netChars / 5 / (timePassed < 0.001 ? 0.001 : timePassed),
-  );
-  const acc =
-    state.charIndex > 0
-      ? Math.round(((state.charIndex - state.mistakes) / state.charIndex) * 100)
-      : 100;
-
-  els.wpm.innerText = wpm;
-  els.acc.innerText = acc + "%";
-}
-
-function finishGame() {
   clearInterval(state.timer);
-  state.isTyping = false;
-  if (els.input) els.input.value = "";
+  state.resultsShown = true;
+  state.isGameActive = false;
 
-  // Show Result
-  if (els.finalWpm) els.finalWpm.innerText = els.wpm?.innerText || 0;
-  if (els.finalAcc) els.finalAcc.innerText = els.acc?.innerText || "100%";
+  if (!state.isPlayerFinished) {
+    finishPlayerRun("time");
+  }
+
+  if (els.finalWpm) els.finalWpm.innerText = String(state.latestStats.wpm || 0);
+  if (els.finalAcc)
+    els.finalAcc.innerText = `${state.latestStats.accuracy || 100}%`;
+  if (els.finalTime)
+    els.finalTime.innerText = formatTime(state.maxTime - state.timeLeft);
+
+  renderFinalLeaderboard();
+
+  if (!state.scoreSaved) {
+    saveGameScore(
+      "multiplayer",
+      state.latestStats.wpm || 0,
+      state.latestStats.accuracy || 100,
+    );
+    state.scoreSaved = true;
+  }
+
   if (els.resultOverlay) els.resultOverlay.classList.add("active");
-
-  // Save Score
-  const wpmVal = parseInt(els.wpm?.innerText || 0);
-  const accVal = parseInt(els.acc?.innerText || 0);
-  saveGameScore("multiplayer", wpmVal, accVal);
 }
 
-// --- CHART ---
-function updateWPMChart(timePoint) {
-  const canvas = document.getElementById("mpChart");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
+function renderFinalLeaderboard() {
+  if (!els.finalLeaderboard) return;
 
-  Object.keys(state.mpPlayersData).forEach((uid) => {
-    if (!state.mpChartData[uid]) state.mpChartData[uid] = [];
-    const p = state.mpPlayersData[uid];
-    state.mpChartData[uid].push({ x: timePoint, y: p.wpm || 0 });
-  });
+  const sorted = getSortedPlayers();
 
-  const rect = canvas.parentNode.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!sorted.length) {
+    els.finalLeaderboard.innerHTML = `<div class="empty-race-state">No result data.</div>`;
+    return;
+  }
 
-  let maxWPM = 60;
-  Object.values(state.mpChartData).forEach((arr) => {
-    arr.forEach((pt) => {
-      if (pt.y > maxWPM) maxWPM = pt.y;
+  const currentUid = auth.currentUser?.uid;
+
+  els.finalLeaderboard.innerHTML = sorted
+    .map((player, index) => {
+      const isMe = player.uid === currentUid;
+      return `
+        <div class="final-leaderboard-item ${isMe ? "me" : ""}">
+          <div class="final-leaderboard-rank">#${index + 1}</div>
+          <div class="final-leaderboard-player">
+            <div class="final-leaderboard-name">${escapeHtml(player.name || "Guest")}${isMe ? " <span>(You)</span>" : ""}</div>
+            <div class="final-leaderboard-meta">${player.progress || 0}% progress · ${player.accuracy || 100}% accuracy</div>
+          </div>
+          <div class="final-leaderboard-score">${player.wpm || 0} WPM</div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+let chartUpdateTimeout = null;
+
+function updateWPMChart() {
+  if (chartUpdateTimeout) return;
+  chartUpdateTimeout = setTimeout(() => {
+    chartUpdateTimeout = null;
+    const canvas = document.getElementById("mpChart");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const currentSecond = Math.max(0, state.maxTime - state.timeLeft);
+
+    Object.keys(state.mpPlayersData || {}).forEach((uid) => {
+      if (!state.mpChartData[uid]) state.mpChartData[uid] = [];
+      const player = state.mpPlayersData[uid];
+      state.mpChartData[uid].push({
+        x: currentSecond,
+        y: player.wpm || 0,
+      });
     });
-  });
-  maxWPM += 10;
 
-  const colors = ["#38bdf8", "#facc15", "#4ade80", "#f87171", "#a8a29e"];
-  let colorIdx = 0;
+    const parent = canvas.parentNode;
+    if (!parent) return;
+    const rect = parent.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = Math.max(220, rect.height - 48);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  Object.keys(state.mpChartData).forEach((uid) => {
-    const points = state.mpChartData[uid];
-    if (points.length < 2) return;
+    const padding = 24;
+    const plotWidth = canvas.width - padding * 2;
+    const plotHeight = canvas.height - padding * 2;
+    const maxSeconds = Math.max(state.maxTime, 1);
 
+    let maxWPM = 60;
+    Object.values(state.mpChartData).forEach((arr) => {
+      arr.forEach((point) => {
+        if (point.y > maxWPM) maxWPM = point.y;
+      });
+    });
+    maxWPM += 10;
+
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.18)";
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i <= 4; i++) {
+      const y = padding + (plotHeight / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(canvas.width - padding, y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.2)";
     ctx.beginPath();
-    ctx.strokeStyle = colors[colorIdx % colors.length];
-    ctx.lineWidth = 3;
-
-    points.forEach((pt, i) => {
-      const x = (pt.x / (state.timeLeft + 30)) * canvas.width; // Scale X tạm thời
-      const y = canvas.height - (pt.y / maxWPM) * canvas.height;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
+    ctx.moveTo(padding, canvas.height - padding);
+    ctx.lineTo(canvas.width - padding, canvas.height - padding);
     ctx.stroke();
-    colorIdx++;
-  });
+
+    Object.keys(state.mpChartData).forEach((uid) => {
+      const points = state.mpChartData[uid];
+      if (!points || points.length < 2) return;
+
+      const color = getChartColor(uid);
+
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+
+      points.forEach((point, index) => {
+        const x =
+          padding + (Math.min(point.x, maxSeconds) / maxSeconds) * plotWidth;
+        const y = canvas.height - padding - (point.y / maxWPM) * plotHeight;
+
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+
+      ctx.stroke();
+    });
+  }, 50);
 }
 
-// --- KEYBOARD & VISUALS ---
+function getChartColor(uid) {
+  if (state.chartColorMap[uid]) return state.chartColorMap[uid];
+
+  const colors = ["#38bdf8", "#facc15", "#4ade80", "#f87171", "#c084fc"];
+  const color = colors[state.chartColorCursor % colors.length];
+  state.chartColorMap[uid] = color;
+  state.chartColorCursor += 1;
+  return color;
+}
+
 const keyboardLayout = [
   [
     "`",
@@ -1257,44 +1581,49 @@ const fingerMap = {
 };
 
 function initKeyboard() {
-  let kbContainer = document.querySelector(".keyboard-container");
+  const kbContainer = document.querySelector(".keyboard-container");
   if (!kbContainer) return;
+
   kbContainer.innerHTML = "";
 
   keyboardLayout.forEach((row) => {
     const rowDiv = document.createElement("div");
     rowDiv.className = "keyboard-row";
+
     row.forEach((key) => {
       const keyDiv = document.createElement("div");
       keyDiv.className = `key ${key.toLowerCase()}`;
       keyDiv.innerText = key === "Space" ? "" : key;
       keyDiv.dataset.key = key.toLowerCase();
-      const f = fingerMap[key.toLowerCase()] || fingerMap[key] || 9;
-      keyDiv.dataset.finger = f;
+      const finger = fingerMap[key.toLowerCase()] || fingerMap[key] || 9;
+      keyDiv.dataset.finger = finger;
       rowDiv.appendChild(keyDiv);
     });
+
     kbContainer.appendChild(rowDiv);
   });
 
-  // Hands
   const handsDiv = document.createElement("div");
   handsDiv.className = "hands-wrapper";
+
   const leftHand = document.createElement("div");
   leftHand.className = "hand left";
-  [1, 2, 3, 4, 5].forEach((i) => {
-    const f = document.createElement("div");
-    f.className = `finger ${getFingerName(i)}`;
-    f.dataset.fingerId = i;
-    leftHand.appendChild(f);
+  [1, 2, 3, 4, 5].forEach((fingerId) => {
+    const finger = document.createElement("div");
+    finger.className = `finger ${getFingerName(fingerId)}`;
+    finger.dataset.fingerId = fingerId;
+    leftHand.appendChild(finger);
   });
+
   const rightHand = document.createElement("div");
   rightHand.className = "hand right";
-  [5, 6, 7, 8, 9].forEach((i) => {
-    const f = document.createElement("div");
-    f.className = `finger ${getFingerName(i)}`;
-    f.dataset.fingerId = i;
-    rightHand.appendChild(f);
+  [5, 6, 7, 8, 9].forEach((fingerId) => {
+    const finger = document.createElement("div");
+    finger.className = `finger ${getFingerName(fingerId)}`;
+    finger.dataset.fingerId = fingerId;
+    rightHand.appendChild(finger);
   });
+
   handsDiv.appendChild(leftHand);
   handsDiv.appendChild(rightHand);
   kbContainer.appendChild(handsDiv);
@@ -1334,10 +1663,11 @@ const specialKeyMap = {
 
 function updateKeyboardHints(char) {
   if (!char) return;
+
   const lowerChar = char.toLowerCase();
   document
     .querySelectorAll(".key.active, .finger.active")
-    .forEach((el) => el.classList.remove("active"));
+    .forEach((element) => element.classList.remove("active"));
 
   let targetKey = lowerChar;
   if (specialKeyMap[char]) targetKey = specialKeyMap[char];
@@ -1345,15 +1675,19 @@ function updateKeyboardHints(char) {
   let keyEl = null;
   try {
     keyEl = document.querySelector(`.key[data-key="${CSS.escape(targetKey)}"]`);
-  } catch (e) {}
+  } catch (error) {
+    keyEl = null;
+  }
 
   if (keyEl) {
     keyEl.classList.add("active");
     const fingerId = keyEl.dataset.finger;
-    if (fingerId)
+    if (fingerId) {
       document
         .querySelectorAll(`.finger[data-finger-id="${fingerId}"]`)
-        .forEach((f) => f.classList.add("active"));
+        .forEach((finger) => finger.classList.add("active"));
+    }
+
     if (char !== lowerChar || '!@#$%^&*()_+{}|:"<>?~'.includes(char)) {
       const shiftKey = document.querySelector(".key.shift");
       if (shiftKey) shiftKey.classList.add("active");
@@ -1363,35 +1697,43 @@ function updateKeyboardHints(char) {
     if (spaceKey) spaceKey.classList.add("active");
     document
       .querySelectorAll(".finger.thumb")
-      .forEach((f) => f.classList.add("active"));
+      .forEach((finger) => finger.classList.add("active"));
   }
 }
 
 function updateKeyboardHeatmap() {
-  document.querySelectorAll(".key").forEach((k) => {
-    k.classList.remove("heat-1", "heat-2", "heat-3", "heat-4", "heat-5");
+  document.querySelectorAll(".key").forEach((key) => {
+    key.classList.remove("heat-1", "heat-2", "heat-3", "heat-4", "heat-5");
   });
+
   if (!state.heatmapEnabled) return;
+
   Object.keys(state.heatmap).forEach((char) => {
     const count = state.heatmap[char];
     let heatClass = "";
+
     if (count >= 10) heatClass = "heat-5";
     else if (count >= 7) heatClass = "heat-4";
     else if (count >= 5) heatClass = "heat-3";
     else if (count >= 3) heatClass = "heat-2";
     else if (count >= 1) heatClass = "heat-1";
-    if (heatClass) {
-      let keyEl = null;
-      try {
-        keyEl = document.querySelector(`.key[data-key="${CSS.escape(char)}"]`);
-      } catch (e) {}
+
+    if (!heatClass) return;
+
+    try {
+      const keyEl = document.querySelector(
+        `.key[data-key="${CSS.escape(char)}"]`,
+      );
       if (keyEl) keyEl.classList.add(heatClass);
+    } catch (error) {
+      console.warn("Heatmap key error", error);
     }
   });
 }
 
 function updateSmoothCaret() {
   let caret = document.getElementById("smoothCaret");
+
   if (!caret) {
     caret = document.createElement("div");
     caret.id = "smoothCaret";
@@ -1399,51 +1741,66 @@ function updateSmoothCaret() {
     caret.className = `cursor-${style}`;
     els.display.appendChild(caret);
   }
+
   const activeSpan = state.charSpans[state.charIndex];
-  if (activeSpan) {
-    const left = activeSpan.offsetLeft;
-    const top = activeSpan.offsetTop;
-    const width = activeSpan.offsetWidth;
-    const height = activeSpan.offsetHeight;
-    caret.style.left = left + "px";
-    caret.style.top = top + "px";
-    if (
-      caret.classList.contains("cursor-block") ||
-      caret.classList.contains("cursor-underscore")
-    ) {
-      caret.style.width = width + "px";
-    }
-    caret.style.height = height + "px";
+  if (!activeSpan) return;
+
+  const left = activeSpan.offsetLeft;
+  const top = activeSpan.offsetTop;
+  const width = activeSpan.offsetWidth;
+  const height = activeSpan.offsetHeight;
+
+  caret.style.left = `${left}px`;
+  caret.style.top = `${top}px`;
+
+  if (
+    caret.classList.contains("cursor-block") ||
+    caret.classList.contains("cursor-underscore")
+  ) {
+    caret.style.width = `${width}px`;
   }
+
+  caret.style.height = `${height}px`;
 }
 
-// --- SOUND & EFFECTS ---
 let audioCtx = null;
+
 function playMechanicalClick() {
   try {
     if (!audioCtx) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) audioCtx = new AudioContext();
-      else return;
+      if (!AudioContext) return;
+      audioCtx = new AudioContext();
     }
+
     if (audioCtx.state === "suspended") audioCtx.resume();
-    const osc = audioCtx.createOscillator();
+
+    const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-    const vol =
-      (parseInt(localStorage.getItem("gameVolume") || 80) / 100) * 0.5;
-    gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      40,
+      audioCtx.currentTime + 0.1,
+    );
+
+    const volume =
+      (parseInt(localStorage.getItem("gameVolume") || 80, 10) / 100) * 0.5;
+    gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(
       0.01,
       audioCtx.currentTime + 0.1,
     );
-    osc.connect(gainNode);
+
+    oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.1);
-  } catch (e) {}
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.1);
+  } catch (error) {
+    console.warn("Sound playback failed", error);
+  }
 }
 
 function toggleSound() {
@@ -1455,8 +1812,7 @@ function toggleSound() {
 
 function toggleZenMode() {
   state.zenMode = !state.zenMode;
-  if (state.zenMode) document.body.classList.add("zen-mode");
-  else document.body.classList.remove("zen-mode");
+  document.body.classList.toggle("zen-mode", state.zenMode);
   updateControlButtons();
 }
 
@@ -1477,7 +1833,9 @@ function updateControlButtons() {
       ? '<i class="fas fa-volume-up"></i> Sound On'
       : '<i class="fas fa-volume-mute"></i> Sound Off';
   }
+
   if (zenBtn) zenBtn.classList.toggle("active", state.zenMode);
+
   if (heatBtn) {
     heatBtn.classList.toggle("active", state.heatmapEnabled);
     heatBtn.innerHTML = state.heatmapEnabled
@@ -1489,6 +1847,7 @@ function updateControlButtons() {
 function initStars() {
   const isEffectsOn = localStorage.getItem("bgEffects") !== "off";
   if (!isEffectsOn) return;
+
   let container = document.getElementById("starsContainer");
   if (!container) {
     container = document.createElement("div");
@@ -1496,16 +1855,18 @@ function initStars() {
     container.className = "stars";
     document.body.prepend(container);
   }
+
   container.innerHTML = "";
+
   for (let i = 0; i < 200; i++) {
     const star = document.createElement("div");
     star.className = "star";
-    const s = Math.random() * 2 + 1;
-    star.style.width = s + "px";
-    star.style.height = s + "px";
-    star.style.left = Math.random() * 100 + "%";
-    star.style.top = Math.random() * 100 + "%";
-    star.style.animationDelay = Math.random() * 5 + "s";
+    const size = Math.random() * 2 + 1;
+    star.style.width = `${size}px`;
+    star.style.height = `${size}px`;
+    star.style.left = `${Math.random() * 100}%`;
+    star.style.top = `${Math.random() * 100}%`;
+    star.style.animationDelay = `${Math.random() * 5}s`;
     star.style.opacity = Math.random() * 0.7 + 0.3;
     container.appendChild(star);
   }
@@ -1515,7 +1876,6 @@ function applyGlobalLanguage(lang) {
   const t = translations[lang];
   if (!t) return;
 
-  // Dịch tự động theo data-translate
   document.querySelectorAll("[data-translate]").forEach((el) => {
     const key = el.getAttribute("data-translate");
     if (t[key]) el.innerHTML = t[key];
@@ -1532,15 +1892,8 @@ function applyGlobalLanguage(lang) {
     if (link.href.includes("multiplayer.html"))
       link.innerText = t.tabMultiplayer;
   });
-  const statLabels = document.querySelectorAll(".stat-label");
-  statLabels.forEach((lbl) => {
-    if (lbl.innerText.includes("WPM")) lbl.innerText = t.statWPM;
-    if (lbl.innerText.includes("Accuracy")) lbl.innerText = t.statAcc;
-    if (lbl.innerText.includes("Time")) lbl.innerText = t.statTime;
-  });
 }
 
-// Helper Toast (Copy từ contact.js nếu chưa có global)
 function showToast(message, type = "success") {
   const container = document.getElementById("toast-container");
   if (!container) return;
@@ -1551,14 +1904,534 @@ function showToast(message, type = "success") {
   const icon = type === "success" ? "fa-check-circle" : "fa-exclamation-circle";
 
   toast.innerHTML = `
-        <i class="fas ${icon}"></i>
-        <span>${message}</span>
-    `;
+    <i class="fas ${icon}"></i>
+    <span>${escapeHtml(message)}</span>
+  `;
 
   container.appendChild(toast);
 
   setTimeout(() => {
     toast.classList.add("hiding");
-    toast.addEventListener("animationend", () => toast.remove());
+    toast.addEventListener("animationend", () => toast.remove(), {
+      once: true,
+    });
   }, 3000);
+}
+
+window.mentionUser = function mentionUser(name) {
+  const input = document.getElementById("chatInput");
+  if (!input) return;
+
+  input.value = `@${name} `;
+  input.focus();
+};
+
+window.kickPlayer = function kickPlayer(uid) {
+  const t = translations[state.lang] || translations.en;
+  if (!state.mpRoomId || state.hostId !== auth.currentUser?.uid) return;
+
+  if (confirm(t.confirmKick || "Kick this player?")) {
+    remove(ref(rtdb, `rooms/${state.mpRoomId}/players/${uid}`));
+  }
+};
+
+function handleChatTyping() {
+  if (!state.mpRoomId || !auth.currentUser) return;
+
+  const typingRef = ref(
+    rtdb,
+    `rooms/${state.mpRoomId}/typing/${auth.currentUser.uid}`,
+  );
+
+  set(typingRef, auth.currentUser.displayName || "Guest");
+  onDisconnect(typingRef).remove();
+
+  if (state.typingTimeout) clearTimeout(state.typingTimeout);
+  state.typingTimeout = setTimeout(() => {
+    remove(typingRef);
+  }, 2000);
+}
+
+function setupTypingListener(roomId) {
+  const typingIndicator = document.getElementById("typingIndicator");
+  if (!typingIndicator) return;
+
+  const typingUnsub = onValue(
+    ref(rtdb, `rooms/${roomId}/typing`),
+    (snapshot) => {
+      const data = snapshot.val() || {};
+      const currentUid = auth.currentUser?.uid;
+
+      const names = Object.keys(data)
+        .filter((uid) => uid !== currentUid)
+        .map((uid) => data[uid]);
+
+      typingIndicator.innerText =
+        names.length > 0
+          ? `${names.join(", ")} ${(translations[state.lang] || translations.en).lblTyping || "is typing..."}`
+          : "";
+    },
+  );
+
+  state.roomUnsubscribers.push(typingUnsub);
+}
+
+function sendChat() {
+  const input = document.getElementById("chatInput");
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text || !state.mpRoomId || !auth.currentUser) return;
+
+  push(ref(rtdb, `rooms/${state.mpRoomId}/chat`), {
+    user: auth.currentUser.displayName || "Guest",
+    text,
+    timestamp: Date.now(),
+  }).catch((error) => console.error("Chat send error:", error));
+
+  if (state.typingTimeout) clearTimeout(state.typingTimeout);
+  remove(ref(rtdb, `rooms/${state.mpRoomId}/typing/${auth.currentUser.uid}`));
+
+  input.value = "";
+  input.focus();
+}
+
+function appendChatMessage(user, text, timestamp) {
+  const container = document.getElementById("chatMessages");
+  if (!container) return;
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "chat-msg";
+
+  const author = document.createElement("strong");
+  author.textContent = `${user}:`;
+
+  const message = document.createElement("span");
+  message.textContent = ` ${text}`;
+  wrapper.appendChild(author);
+  wrapper.appendChild(message);
+
+  if (timestamp) {
+    const meta = document.createElement("small");
+    meta.className = "chat-msg-time";
+    meta.textContent = ` · ${new Date(timestamp).toLocaleTimeString()}`;
+    wrapper.appendChild(meta);
+  }
+
+  container.appendChild(wrapper);
+  container.scrollTop = container.scrollHeight;
+}
+
+async function loadUserProfile() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  let data;
+
+  if (!userSnap.exists()) {
+    const newShortId = Math.floor(
+      10000000 + Math.random() * 90000000,
+    ).toString();
+    await setDoc(
+      userRef,
+      {
+        uid: user.uid,
+        name: user.displayName || "Guest",
+        email: user.email || "",
+        photoURL: user.photoURL || "",
+        createdAt: new Date().toISOString(),
+        shortId: newShortId,
+        role: "member",
+        wpm_best: 0,
+        matches_played: 0,
+        elo: 1000,
+        friends: [],
+      },
+      { merge: true },
+    );
+    data = { shortId: newShortId, friends: [], elo: 1000 };
+  } else {
+    data = userSnap.data();
+    if (data.elo === undefined) {
+      data.elo = 1000;
+      await updateDoc(userRef, { elo: 1000 });
+    }
+  }
+
+  state.myElo = data.elo;
+  const idDisplay = document.getElementById("myShortId");
+  if (idDisplay) {
+    if (!data.shortId) {
+      const newShortId = Math.floor(
+        10000000 + Math.random() * 90000000,
+      ).toString();
+      await updateDoc(userRef, { shortId: newShortId });
+      idDisplay.innerText = `ID: ${newShortId}`;
+    } else {
+      idDisplay.innerText = `ID: ${data.shortId}`;
+    }
+  }
+
+  renderFriendsList(data.friends || []);
+}
+
+async function addFriend() {
+  const input = document.getElementById("friendIdInput");
+  const btn = document.getElementById("btnAddFriend");
+  const friendId = input.value.trim();
+  const t = translations[state.lang] || translations.en;
+  const user = auth.currentUser;
+
+  if (!user) {
+    showToast(t.msgLoginRequired || "You must be logged in to add friends.", "error");
+    return;
+  }
+
+  if (!friendId) {
+    showToast(t.msgInvalidFriendId || "Please enter a Friend ID.", "error");
+    return;
+  }
+
+  // shortId is always 8 digits
+  if (!/^\d{8}$/.test(friendId)) {
+    showToast(t.msgInvalidFriendId || "Friend ID must be 8 digits.", "error");
+    return;
+  }
+
+  // Loading state
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+
+  try {
+    try {
+      await user.getIdToken(true);
+    } catch (error) {
+      console.error("addFriend token refresh failed", error);
+      showToast(t.msgAuthExpired || "Session expired. Please refresh and login again.", "error");
+      return;
+    }
+
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("shortId", "==", friendId));
+
+    let querySnapshot;
+    try {
+      querySnapshot = await getDocs(q);
+    } catch (error) {
+      console.error("addFriend query failed", error);
+      showToast(t.msgFriendQueryError || "Unable to search users. Please try again.", "error");
+      return;
+    }
+
+    if (querySnapshot.empty) {
+      showToast(t.msgUserNotFound || "No user found with that ID.", "error");
+      return;
+    }
+
+    const friendDoc = querySnapshot.docs[0];
+    const friendData = friendDoc.data();
+
+    if (!friendData.uid) {
+      showToast(t.msgUserNotFound || "User not found!", "error");
+      return;
+    }
+
+    if (friendData.uid === user.uid) {
+      showToast(t.msgCannotAddYourself || "You cannot add yourself.", "error");
+      return;
+    }
+
+    const currentUserRef = doc(db, "users", user.uid);
+    let currentUserSnap = await getDoc(currentUserRef);
+
+    if (!currentUserSnap.exists()) {
+      await setDoc(
+        currentUserRef,
+        {
+          uid: user.uid,
+          name: user.displayName || "Guest",
+          email: user.email || "",
+          photoURL: user.photoURL || "",
+          createdAt: new Date().toISOString(),
+          shortId: "",
+          role: "member",
+          wpm_best: 0,
+          matches_played: 0,
+          friends: [],
+        },
+        { merge: true },
+      );
+      currentUserSnap = await getDoc(currentUserRef);
+    }
+
+    const currentFriends = currentUserSnap.exists()
+      ? currentUserSnap.data().friends || []
+      : [];
+
+    if (currentFriends.some((friend) => friend.uid === friendData.uid)) {
+      showToast(t.msgFriendAlreadyAdded || "Already in your friends list!", "error");
+      return;
+    }
+
+    try {
+      await updateDoc(currentUserRef, {
+        friends: arrayUnion({
+          uid: friendData.uid,
+          name: friendData.name || friendData.email || "Friend",
+          photoURL: friendData.photoURL || "",
+          shortId: friendData.shortId || "",
+        }),
+      });
+    } catch (error) {
+      console.error("addFriend update failed", error);
+      showToast(t.msgFriendSaveError || "Unable to save friend. Please try again.", "error");
+      return;
+    }
+
+    showToast(`${t.msgFriendAdded || "Friend added!"} 🎉`, "success");
+    input.value = "";
+    loadUserProfile();
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i>'; }
+  }
+}
+
+function inviteFriendToRoom(friend) {
+  const t = translations[state.lang] || translations.en;
+  if (!state.mpRoomId) {
+    alert(t.msgInviteRequireRoom || "Join or create a room to invite friends.");
+    return;
+  }
+
+  copyInviteLink();
+  showToast(
+    `${friend.name} · ${t.msgLinkCopied || "Link copied to clipboard!"}`,
+  );
+}
+
+function renderFriendsList(friends) {
+  const list = document.getElementById("friendsList");
+  const t = translations[state.lang] || translations.en;
+  if (!list) return;
+  // keep a reference for event handlers
+  state.friendsList = Array.isArray(friends) ? friends : [];
+
+  if (!state.friendsList.length) {
+    list.innerHTML = `<div class="no-friends">${t.msgNoFriends || "No friends yet. Add someone by ID above."}</div>`;
+    return;
+  }
+
+  list.innerHTML = state.friendsList
+    .map(
+      (friend) => `
+        <div class="friend-item" data-uid="${escapeHtml(friend.uid)}">
+          <img src="${escapeHtml(friend.photoURL || "https://ui-avatars.com/api/?background=random")}" class="player-avatar" alt="${escapeHtml(friend.name || "Friend")}">
+          <div class="friend-copy">
+            <span>${escapeHtml(friend.name || "Friend")}</span>
+            <small>ID: ${escapeHtml(friend.shortId || "-")}</small>
+          </div>
+          <button type="button" class="btn-icon small friend-invite-btn" data-uid="${escapeHtml(friend.uid)}" title="${t.btnInvite || "Invite"}">
+            <i class="fas fa-link"></i>
+          </button>
+          <div class="friend-status"></div>
+        </div>
+      `,
+    )
+    .join("");
+
+  // open chat when clicking the item
+  list.querySelectorAll(".friend-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      const uid = item.dataset.uid;
+      const friendObj = state.friendsList.find((f) => f.uid === uid);
+      if (!friendObj) return;
+      openFriendChat(friendObj);
+    });
+  });
+
+  // invite button
+  list.querySelectorAll(".friend-invite-btn").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const uid = btn.dataset.uid;
+      const friendObj = state.friendsList.find((f) => f.uid === uid);
+      if (!friendObj) return;
+      inviteFriendToRoom(friendObj);
+    });
+  });
+}
+
+let friendChatUnsubscribe = null;
+let currentFriendChat = null;
+
+function getFriendChatId(uid1, uid2) {
+  return [uid1, uid2].sort().join("_");
+}
+
+function closeFriendChat() {
+  const panel = document.getElementById("friendChatPanel");
+  if (panel) panel.style.display = "none";
+
+  currentFriendChat = null;
+
+  if (friendChatUnsubscribe) {
+    friendChatUnsubscribe();
+    friendChatUnsubscribe = null;
+  }
+}
+
+async function openFriendChat(friend) {
+  if (!friend || !friend.uid || !auth.currentUser) return;
+
+  const t = translations[state.lang] || translations.en;
+  const title = document.getElementById("friendChatTitle");
+  const subtitle = document.getElementById("friendChatSubtitle");
+  const panel = document.getElementById("friendChatPanel");
+  const chatMessages = document.getElementById("friendChatMessages");
+
+  if (!panel || !chatMessages || !title || !subtitle) return;
+
+  panel.style.display = "flex";
+  title.innerText = `${friend.name || t.lblFriends} ${t.lblChat}`;
+  subtitle.innerText = t.msgFriendChatActive || "Chat with your friend.";
+  chatMessages.innerHTML = `<div class="loading">${t.lblLoading || "Loading..."}</div>`;
+
+  currentFriendChat = friend;
+
+  if (friendChatUnsubscribe) friendChatUnsubscribe();
+
+  const chatId = getFriendChatId(auth.currentUser.uid, friend.uid);
+  const messagesRef = collection(db, "friend_chats", chatId, "messages");
+  const q = query(messagesRef, orderBy("timestamp", "asc"));
+
+  friendChatUnsubscribe = onSnapshot(q, (snapshot) => {
+    const messages = [];
+    snapshot.forEach((messageDoc) => messages.push(messageDoc.data()));
+    renderFriendChatMessages(messages, friend);
+  });
+}
+
+function renderFriendChatMessages(messages, friend) {
+  const chatMessages = document.getElementById("friendChatMessages");
+  const t = translations[state.lang] || translations.en;
+  if (!chatMessages) return;
+
+  if (!messages || messages.length === 0) {
+    chatMessages.innerHTML = `<div class="no-friends">${t.msgNoChatHistory || "No messages yet. Say hello!"}</div>`;
+    return;
+  }
+
+  chatMessages.innerHTML = messages
+    .map((message) => {
+      const isMine = message.senderUid === auth.currentUser.uid;
+      const rawTime = message.timestamp?.toDate
+        ? message.timestamp.toDate()
+        : new Date(message.timestamp || Date.now());
+
+      return `
+        <div class="friend-chat-bubble ${isMine ? "mine" : "friend"}">
+          <div class="friend-chat-text">${escapeHtml(message.text || "")}</div>
+          <div class="friend-chat-meta">${isMine ? t.lblYou || "You" : escapeHtml(friend.name || "Friend")} · ${rawTime.toLocaleTimeString()}</div>
+        </div>
+      `;
+    })
+    .join("");
+
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function sendFriendMessage() {
+  const input = document.getElementById("friendChatInput");
+  if (
+    !input ||
+    !currentFriendChat ||
+    !currentFriendChat.uid ||
+    !auth.currentUser
+  )
+    return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  const chatId = getFriendChatId(auth.currentUser.uid, currentFriendChat.uid);
+  const messagesRef = collection(db, "friend_chats", chatId, "messages");
+
+  await addDoc(messagesRef, {
+    senderUid: auth.currentUser.uid,
+    receiverUid: currentFriendChat.uid,
+    text,
+    timestamp: serverTimestamp(),
+  });
+
+  input.value = "";
+}
+
+/* --- VẼ BIỂU ĐỒ MOBA RANK --- */
+function renderMobaRankChart() {
+  const canvas = document.getElementById("mobaRankChart");
+  if (!canvas || typeof Chart === "undefined") return;
+
+  const ctx = canvas.getContext("2d");
+
+  // Dữ liệu ELO giả lập (Bạn sẽ lấy mảng này từ Firebase user.eloHistory sau)
+  const eloData = [1000, 1050, 1030, 1120, 1150, 1110, 1250, 1300];
+  const labels = [
+    "Match 1",
+    "Match 2",
+    "Match 3",
+    "Match 4",
+    "Match 5",
+    "Match 6",
+    "Match 7",
+    "Match 8",
+  ];
+
+  // Tạo Gradient nền màu vàng chuẩn Rank Gold/Ranked
+  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, "rgba(250, 204, 21, 0.4)"); // Vàng chói ở trên
+  gradient.addColorStop(1, "rgba(250, 204, 21, 0.0)"); // Mờ dần ở dưới cùng
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "ELO Rating",
+          data: eloData,
+          borderColor: "#facc15", // Màu dây viền (var(--accent-ranked))
+          backgroundColor: gradient,
+          borderWidth: 3,
+          pointBackgroundColor: "#0f172a",
+          pointBorderColor: "#facc15",
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          fill: true,
+          tension: 0.4, // Tham số này tạo đường cong mềm mại (Moba Style)
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+          backgroundColor: "rgba(15, 23, 42, 0.9)",
+        },
+      },
+      scales: {
+        x: { display: false }, // Ẩn tên trận dưới trục X cho gọn
+        y: {
+          grid: { color: "rgba(255,255,255,0.05)" },
+          ticks: { color: "#94a3b8" },
+        },
+      },
+    },
+  });
 }
